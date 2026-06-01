@@ -2,7 +2,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // Handle CORS preflight requests (allows your website to communicate with the worker)
+    // Handle CORS preflight requests so your web browser is allowed to communicate with Cloudflare
     if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: {
@@ -13,7 +13,7 @@ export default {
       });
     }
 
-    // 1. FRONTEND WEBSITE SENDS CODE HERE (POST)
+    // 1. FRONTEND WEBSITE SENDS CODE HERE (/send-code)
     if (request.method === "POST" && url.pathname === "/send-code") {
       try {
         const data = await request.json();
@@ -21,34 +21,43 @@ export default {
         const luauCode = data.code;
 
         if (!sessionKey || !luauCode) {
-          return new Response("Missing key or code payload", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+          return new Response("Missing session key or code payload.", { 
+            status: 400, 
+            headers: { "Access-Control-Allow-Origin": "*" } 
+          });
         }
 
-        // Save the raw text code into the KV Namespace using the session key
+        // Save script data directly to the KV Namespace using the session key as the dictionary identifier
         await env.ROBLOX_QUEUE.put(sessionKey, luauCode);
 
-        return new Response("Code successfully queued at the edge", {
+        return new Response("Code successfully cached at the edge network.", {
           status: 200,
           headers: { "Access-Control-Allow-Origin": "*" }
         });
       } catch (err) {
-        return new Response("Invalid JSON payload structure", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        return new Response("Invalid request payload syntax.", { 
+          status: 400, 
+          headers: { "Access-Control-Allow-Origin": "*" } 
+        });
       }
     }
 
-    // 2. ROBLOX CLIENT PICKS UP CODE HERE (GET)
+    // 2. ROBLOX STUDIO PICKS UP CODE HERE (/get-code)
     if (request.method === "GET" && url.pathname === "/get-code") {
       const sessionKey = url.searchParams.get("key");
 
       if (!sessionKey) {
-        return new Response("Missing search query key parameter", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        return new Response("Missing search identification parameter key.", { 
+          status: 400, 
+          headers: { "Access-Control-Allow-Origin": "*" } 
+        });
       }
 
-      // Fetch the queued script from the KV storage database
+      // Fetch the queued text execution package from KV Storage
       const cachedCode = await env.ROBLOX_QUEUE.get(sessionKey);
 
       if (cachedCode) {
-        // Automatically wipe the key after it's read once so it doesn't execute in a loop
+        // Clear the key out so Roblox executes it exactly once rather than in a continuous loop
         await env.ROBLOX_QUEUE.delete(sessionKey);
         
         return new Response(cachedCode, {
@@ -60,11 +69,14 @@ export default {
         });
       }
 
-      // Return an empty success response if no code is waiting
-      return new Response("", { status: 200, headers: { "Access-Control-Allow-Origin": "*" } });
+      // Return an empty success string if Roblox polls but no script is waiting
+      return new Response("", { 
+        status: 200, 
+        headers: { "Access-Control-Allow-Origin": "*" } 
+      });
     }
 
-    // Fallback if someone hits an invalid path or method
+    // Final fallback catching mismatched parameters or raw endpoint roots
     return new Response("Endpoint Not Found or Method Not Allowed", { 
       status: 404, 
       headers: { "Access-Control-Allow-Origin": "*" } 
