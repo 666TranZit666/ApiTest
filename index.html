@@ -3,164 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Remote Executor Panel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Cazed Cloud Executor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #0f0f12;
-            color: #e4e4e7;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-        .panel-container {
-            max-width: 800px;
-            margin: 60px auto;
-            background: #18181b;
-            border: 1px solid #27272a;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        .key-box {
-            background-color: #27272a;
-            border: 1px solid #3f3f46;
-            color: #38bdf8;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            font-size: 1.25rem;
-            letter-spacing: 1px;
-        }
-        .code-editor {
-            background-color: #09090b;
-            color: #a7f3d0;
-            font-family: 'Fira Code', 'Courier New', Courier, monospace;
-            border: 1px solid #27272a;
-            resize: vertical;
-            min-height: 250px;
-        }
-        .code-editor:focus {
-            background-color: #09090b;
-            color: #a7f3d0;
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
-        }
-        .btn-execute {
-            background-color: #0284c7;
-            color: #ffffff;
-            font-weight: 600;
-            border: none;
-            transition: all 0.2s ease;
-        }
-        .btn-execute:hover {
-            background-color: #0369a1;
-            transform: translateY(-1px);
-        }
-        .status-text {
-            font-size: 0.9rem;
-            color: #71717a;
-        }
+        body { background-color: #0f0f12; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .editor-card { background-color: #181820; border: 1px solid #2d2d3d; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .code-box { background-color: #0b0b0f; border: 1px solid #3f3f56; color: #a7f3d0; font-family: 'Fira Code', 'Courier New', monospace; font-size: 14px; resize: none; }
+        .code-box:focus { background-color: #0b0b0f; border-color: #3b82f6; color: #a7f3d0; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
+        .key-badge { background-color: #1e293b; border: 1px solid #3b82f6; color: #60a5fa; font-weight: bold; font-family: monospace; }
     </style>
 </head>
 <body>
+    <script>
+        // ========================================================
+        // CONFIGURATION: PASTE YOUR STANDALONE WORKER URL HERE
+        // ========================================================
+        const WORKER_URL = "https://robloxapi.666tranzit666.workers.dev"; 
 
-<div class="container">
-    <div class="panel-container">
-        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-            <h2 class="fw-bold m-0 text-white">Roblox Web Executor</h2>
-            <span class="badge bg-success px-3 py-2">Cloudflare Edge Connected</span>
-        </div>
+        // Generate a persistent session key on page load
+        const sessionKey = "RBX-" + Math.floor(100000 + Math.random() * 900000);
 
-        <div class="row align-items-center mb-4">
-            <div class="col-md-4">
-                <label class="form-label fw-semibold text-secondary m-0">Your Executor Key:</label>
-            </div>
-            <div class="col-md-8">
-                <div class="input-group">
-                    <div class="form-control text-center key-box" id="keyDisplay">GENERATING...</div>
-                    <button class="btn btn-outline-secondary" type="button" id="copyKeyBtn">Copy Key</button>
+        async function executeScript() {
+            const codeInput = document.getElementById("luaCode").value;
+            const statusDiv = document.getElementById("statusMessage");
+
+            if (!codeInput.trim()) {
+                showStatus("Please enter some Luau code first!", "danger");
+                return;
+            }
+
+            showStatus("Sending package to Cloudflare Edge...", "warning");
+
+            try {
+                // Notice the clear path pointing directly to /send-code
+                const response = await fetch(`${WORKER_URL}/send-code`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: sessionKey, code: codeInput })
+                });
+
+                if (response.ok) {
+                    showStatus("Success! Packet queued for Roblox execution.", "success");
+                } else {
+                    const errText = await response.text();
+                    showStatus(`Server Rejected Package: ${errText}`, "danger");
+                }
+            } catch (error) {
+                showStatus(`Network Error: Unabe to connect to backend worker.`, "danger");
+            }
+        }
+
+        function showStatus(text, type) {
+            const statusDiv = document.getElementById("statusMessage");
+            statusDiv.className = `alert alert-${type} mt-3 py-2 text-center`;
+            statusDiv.innerText = text;
+        }
+
+        function copyKey() {
+            navigator.clipboard.writeText(sessionKey);
+            alert("Session key copied to clipboard! Paste this into line 7 of your Roblox script.");
+        }
+
+        window.onload = () => {
+            document.getElementById("displayKey").innerText = sessionKey;
+        };
+    </script>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-4">
+                    <h1 class="fw-bold text-white">Cazed Execution Hub</h1>
+                    <p class="text-muted">Send script binaries to your Roblox game client via Cloudflare Edge</p>
+                </div>
+
+                <div class="editor-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-secondary small">Your Game Key:</span>
+                            <span id="displayKey" class="badge key-badge px-3 py-2 fs-6">RBX-000000</span>
+                            <button class="btn btn-sm btn-outline-secondary py-1" onclick="copyKey()">Copy</button>
+                        </div>
+                        <span class="badge bg-success py-2 px-3">Pipeline Stable</span>
+                    </div>
+
+                    <textarea id="luaCode" class="form-control code-box p-3" rows="14" placeholder='-- Write your Roblox code here...&#10;print("Hello from www.cazed.wtf!")&#10;workspace.BasePlate.Color = Color3.fromRGB(0, 255, 120)'></textarea>
+
+                    <div id="statusMessage" class="alert alert-info mt-3 py-2 text-center d-none">Ready</div>
+
+                    <div class="mt-4 d-grid">
+                        <button class="btn btn-primary btn-lg fw-semibold" onclick="executeScript()">Execute Script Live</button>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="mb-3">
-            <label for="scriptInput" class="form-label fw-semibold text-secondary">Luau Execution Script:</label>
-            <textarea class="form-control code-editor" id="scriptInput" placeholder="-- Type your Roblox code here...">print("Hello World from Cloudflare Edge!")</textarea>
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center pt-2">
-            <div class="status-text" id="statusMessage">System Idle. Waiting for execution command...</div>
-            <button class="btn btn-execute px-5 py-2" id="executeBtn">Execute Script</button>
-        </div>
     </div>
-</div>
-
-<script>
-    // ==========================================
-    // CONFIGURATION: PASTE YOUR WORKER URL HERE
-    // ==========================================
-    const WORKER_URL = "robloxapi.6dds26hhmm.workers.dev"; 
-
-    // Generate a fixed, random 6-digit session execution token
-    const executionKey = "RBX-" + Math.floor(100000 + Math.random() * 900000);
-    document.getElementById('keyDisplay').textContent = executionKey;
-
-    // Element Selectors
-    const executeBtn = document.getElementById('executeBtn');
-    const scriptInput = document.getElementById('scriptInput');
-    const statusMessage = document.getElementById('statusMessage');
-    const copyKeyBtn = document.getElementById('copyKeyBtn');
-
-    // Copy Key Utility
-    copyKeyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(executionKey);
-        const originalText = copyKeyBtn.textContent;
-        copyKeyBtn.textContent = "Copied!";
-        setTimeout(() => copyKeyBtn.textContent = originalText, 1500);
-    });
-
-    // Handle Script Transmission to Cloudflare KV Array
-    executeBtn.addEventListener('click', async () => {
-        const rawCode = scriptInput.value.trim();
-
-        if (!rawCode) {
-            updateStatus("Error: Cannot execute an empty script workspace.", "#f87171");
-            return;
-        }
-
-        updateStatus("Transmitting payload to Cloudflare KV Edge...", "#38bdf8");
-        executeBtn.disabled = true;
-
-        try {
-            const response = await fetch(`${WORKER_URL}/send-code`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    key: executionKey,
-                    code: rawCode
-                })
-            });
-
-            if (response.ok) {
-                updateStatus("Success! Script queued. Roblox client can fetch it now.", "#34d399");
-            } else {
-                const errorText = await response.text();
-                updateStatus(`Server rejected package: ${errorText || response.statusText}`, "#f87171");
-            }
-        } catch (error) {
-            console.error("Networking error: ", error);
-            updateStatus("Network Error: Verification with Cloudflare Worker failed.", "#f87171");
-        } finally {
-            executeBtn.disabled = false;
-        }
-    });
-
-    function updateStatus(text, color) {
-        statusMessage.textContent = text;
-        statusMessage.style.color = color;
-    }
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
