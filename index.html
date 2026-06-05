@@ -772,18 +772,16 @@ function generateSessionKey() {
 
         async function sendLuaCode(luaString) {
     const sessionKey = getCookie("luma_session_key");
-    
-    const payload = {
-        key: sessionKey,
-        execute: luaString,
-        timestamp: Date.now()
-    };
-
     try {
-        await fetch(`${WORKER_URL}/send-code?key=${sessionKey}`, {
+        const response = await fetch(`${WORKER_URL}/send-code`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            headers: {
+                    "Content-Type": "application/json"
+                },
+            body: JSON.stringify({
+                    key: sessionKey,
+                    code: luaString
+                })
         });
         console.log("Code packet sent to worker");
     } catch (err) {
