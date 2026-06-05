@@ -344,6 +344,19 @@
             transform: translateY(-2px);
             border-color: var(--accent-primary);
         }
+
+        /* Profile Banner Tags */
+        .profile-tag {
+            display: inline-block;
+            background-color: var(--border-line);
+            color: var(--text-primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 10px;
+            border: 1px solid var(--accent-primary);
+        }
     </style>
 </head>
 <body>
@@ -370,6 +383,14 @@
             <h1 class="panel-title">Welcome to Luma</h1>
             <div class="panel-subtitle">Manage session infrastructure and client synchronization tokens</div>
             
+            <div class="control-card">
+                <div class="card-header"><p class="card-title">Active Environment Connection</p></div>
+                <p class="card-desc">Displays the verification status of your local Lua pipeline instance.</p>
+                <div id="playerConnectionStatus">
+                    <span class="profile-tag" style="border-color: var(--border-line); opacity: 0.6;">Waiting for Link...</span>
+                </div>
+            </div>
+
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Session Tracking Token</p></div>
                 <div style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Generate a personal key identifier to securely sync data parameters with your client.</div>
@@ -489,7 +510,6 @@
             </div>
 
             <hr class="ui-line">
-
             <div class="ui-label">Camera Mods</div>
 
             <div class="control-card">
@@ -526,9 +546,9 @@
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Select a player to view</p></div>
-                <p class="card-desc">Choose target profile from pipeline stream list</p>
+                <p class="card-desc">Filters out local identity dynamically from online game instances</p>
                 <select class="custom-input" id="spectateDropdown" onchange="updateConfigParameter('PlayerToView', this.value)">
-                    <option value="">-- No Active Server Connections --</option>
+                    <option value="">-- Waiting for Active Instances --</option>
                 </select>
             </div>
 
@@ -545,7 +565,6 @@
             </div>
 
             <hr class="ui-line">
-
             <div class="ui-label">Game Options</div>
 
             <div class="control-card">
@@ -591,7 +610,6 @@
                 <div class="theme-card" onclick="selectAndSaveTheme('Glacier')">Glacier</div>
                 <div class="theme-card" onclick="selectAndSaveTheme('Midnight')">Midnight</div>
                 <div class="theme-card" onclick="selectAndSaveTheme('Anime')">Anime</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Femboy')">Femboy</div>
             </div>
         </div>
 
@@ -601,7 +619,12 @@
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
         let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
 
-        // UPDATED MASTER CONFIGURATION SCHEMA MATRIX TRACKER
+        // Dynamic State Stream Management Object
+        let linkedSessionState = {
+            localPlayerName: "",
+            connectedClientsList: [] 
+        };
+
         let activeConfigMatrix = {
             WalkSpeed: 16,
             JumpPower: 50,
@@ -674,7 +697,6 @@
             syncGlobalConfigMatrix();
         }
 
-        // Custom Helper to adjust FOV Slider elements natively
         function resetFOVElement() {
             const slider = document.getElementById('fovSlider');
             if (slider) {
@@ -684,7 +706,6 @@
             }
         }
 
-        // Trigger action dispatches for dynamic interface interactions
         async function executeButtonAction(actionIdentifier) {
             triggerNotification("warning", `Executing system pipeline command: ${actionIdentifier}...`);
             try {
@@ -746,6 +767,52 @@
             statusDiv.classList.remove("d-none");
         }
 
+        // Processing Pipeline Engine: Re-mapping layout outputs safely
+        function processIncomingServerStateUpdate(incomingPayload) {
+            if (incomingPayload.localPlayerName) {
+                if (linkedSessionState.localPlayerName !== incomingPayload.localPlayerName) {
+                    triggerNotification("success", `Connected! Verified Session Profile: ${incomingPayload.localPlayerName}`);
+                }
+                linkedSessionState.localPlayerName = incomingPayload.localPlayerName;
+                
+                const statusContainer = document.getElementById("playerConnectionStatus");
+                if (statusContainer) {
+                    statusContainer.innerHTML = `<span class="profile-tag">Linked Player: ${linkedSessionState.localPlayerName}</span>`;
+                }
+            }
+
+            if (incomingPayload.connectedClientsList && Array.isArray(incomingPayload.connectedClientsList)) {
+                linkedSessionState.connectedClientsList = incomingPayload.connectedClientsList;
+                
+                const dropdownElement = document.getElementById("spectateDropdown");
+                if (dropdownElement) {
+                    dropdownElement.innerHTML = "";
+                    
+                    // Filter out local target entity matches dynamically before generation rendering loops
+                    const filteredPlayers = linkedSessionState.connectedClientsList.filter(
+                        player => player !== linkedSessionState.localPlayerName
+                    );
+
+                    if (filteredPlayers.length === 0) {
+                        const defaultOpt = document.createElement("option");
+                        defaultOpt.value = "";
+                        defaultOpt.innerText = "-- No Other Active Players Detected --";
+                        dropdownElement.appendChild(defaultOpt);
+                    } else {
+                        filteredPlayers.forEach(player => {
+                            const opt = document.createElement("option");
+                            opt.value = player;
+                            opt.innerText = player;
+                            if (activeConfigMatrix.PlayerToView === player) {
+                                opt.selected = true;
+                            }
+                            dropdownElement.appendChild(opt);
+                        });
+                    }
+                }
+            }
+        }
+
         function applyThemeColors(themeName) {
             const root = document.documentElement;
             const configurations = {
@@ -760,8 +827,7 @@
                 "Ubuntu": { main: "#300a24", sidebar: "#401230", card: "#401230", text: "#ffffff", secondary: "#c8b4be", accent: "#e95420", border: "#ac2d82" },
                 "Glacier": { main: "#f0f8ff", sidebar: "#dcfff0", card: "#f5fcff", text: "#19374b", secondary: "#466e82", accent: "#00bfff", border: "#add8e6" },
                 "Midnight": { main: "#0a0a19", sidebar: "#14142d", card: "#141428", text: "#b4c8ff", secondary: "#9696c8", accent: "#4b0082", border: "#6432b4" },
-                "Anime": { main: "#fff0f5", sidebar: "#ffdc26", card: "#fff5fa", text: "#8b4565", secondary: "#b48296", accent: "#ff69b4", border: "#ff69b4" },
-                "Femboy": { main: "#fff5fa", sidebar: "#ffebd2", card: "#fffafc", text: "#db7093", secondary: "#b4788c", accent: "#ff69b4", border: "#ffb6c1" }
+                "Anime": { main: "#fff0f5", sidebar: "#ffdcd2", card: "#fff5fa", text: "#8b4565", secondary: "#b48296", accent: "#ff69b4", border: "#ffb4c8" }
             };
 
             const selected = configurations[themeName] || configurations["Rise"];
