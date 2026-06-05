@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luma | Lumber Tycoon 2 Script</title>
+    <title>Luma Control Panel</title>
     <style>
         :root {
             --bg-main: #121212;
@@ -176,7 +176,7 @@
             text-align: center;
         }
 
-        /* Console Buttons & Blocks */
+        /* Console Action Items */
         .action-btn {
             background-color: var(--accent-primary);
             color: white;
@@ -288,9 +288,9 @@
                     <span class="slider-badge" id="walkspeedValue">16</span>
                 </div>
                 <div class="slider-wrapper">
-                    <input type="range" min="16" max="150" value="16" class="custom-slider" 
+                    <input type="range" min="16" max="150" value="16" class="custom-slider" id="walkspeedSlider"
                            oninput="document.getElementById('walkspeedValue').innerText = this.value" 
-                           onchange="sendDirectMetric('WalkSpeed', this.value)">
+                           onchange="updateConfigParameter('WalkSpeed', this.value)">
                 </div>
             </div>
 
@@ -300,9 +300,9 @@
                     <span class="slider-badge" id="jumppowerValue">50</span>
                 </div>
                 <div class="slider-wrapper">
-                    <input type="range" min="50" max="200" value="50" class="custom-slider" 
+                    <input type="range" min="50" max="200" value="50" class="custom-slider" id="jumppowerSlider"
                            oninput="document.getElementById('jumppowerValue').innerText = this.value" 
-                           onchange="sendDirectMetric('JumpPower', this.value)">
+                           onchange="updateConfigParameter('JumpPower', this.value)">
                 </div>
             </div>
         </div>
@@ -368,6 +368,32 @@
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
         let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
 
+        // RESTORED MASTER CONFIGURATION SCHEMA MATRIX VARIABLE
+        let activeConfigMatrix = {
+            WalkSpeed: 16,
+            JumpPower: 50,
+            HipHeight: 0,
+            FullBright: false,
+            FastCheckout: false,
+            HardDragger: false,
+            FlyKey: 'E',
+            FlySpeed: 200,
+            AlwaysDay: false,
+            AlwaysNight: false,
+            NoFog: false,
+            AntiAFK: false,
+            SignDupeAmount: 1,
+            TeleportWithTree: true,
+            SelectedTreeTypeSize: 'Largest',
+            AutoSaveGUIConfiguration: true,
+            GlobalShadows: true,
+            UnboxItems: false,
+            FreeCamera: false,
+            DropAxeAfterDupe: false,
+            SellPlankAfterMilling: false,
+            UITheme: 'Ubuntu'
+        };
+
         function setCookie(name, value, days = 365) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -400,27 +426,25 @@
             sessionKey = generatedKey;
             document.getElementById("keyDisplay").innerText = generatedKey;
             triggerNotification("success", "New configuration key generated successfully.");
+            syncGlobalConfigMatrix();
         }
 
         function selectAndSaveTheme(themeName) {
             applyThemeColors(themeName);
             setCookie("userAppTheme", themeName);
-            sendDirectMetric('UITheme', themeName);
+            activeConfigMatrix.UITheme = themeName;
+            syncGlobalConfigMatrix();
         }
 
-        // DISPATCH KEY-VALUE UPDATES TO THE EDGE WORKER
-        async function sendDirectMetric(parameterKey, rawValue) {
-            let processedValue = rawValue;
-            if (rawValue === 'true') processedValue = true;
-            if (rawValue === 'false') processedValue = false;
-            if (!isNaN(rawValue) && typeof rawValue !== 'boolean' && typeof rawValue !== 'string') {
-                processedValue = parseInt(rawValue);
-            }
+        // Updates data safely within our matrix tracker before execution delivery
+        function updateConfigParameter(keyName, rawValue) {
+            activeConfigMatrix[keyName] = parseInt(rawValue);
+            syncGlobalConfigMatrix();
+        }
 
-            const dataPackage = {};
-            dataPackage[parameterKey] = processedValue;
-
-            triggerNotification("warning", `Synchronizing [${parameterKey}] value...`);
+        // FULL MATRIX SYNCHRONIZER DISPATCHER
+        async function syncGlobalConfigMatrix() {
+            triggerNotification("warning", "Synchronizing complete layout parameters matrix configuration with worker edge nodes...");
 
             try {
                 const response = await fetch(`${WORKER_URL}/send-config`, {
@@ -428,17 +452,17 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
                         key: sessionKey, 
-                        config: dataPackage 
+                        config: activeConfigMatrix 
                     })
                 });
 
                 if (response.ok) {
-                    triggerNotification("success", `Data synchronized successfully: [${parameterKey} = ${rawValue}]`);
+                    triggerNotification("success", "Success! Full matrix configurations synced smoothly.");
                 } else {
-                    triggerNotification("danger", "Server rejected sync profile package.");
+                    triggerNotification("danger", "Server Rejected config payload initialization.");
                 }
             } catch (err) {
-                triggerNotification("danger", "Network Error: Failed to reach edge deployment gateway.");
+                triggerNotification("danger", "Network Failure: Unable to complete endpoint data pipeline transmission.");
             }
         }
 
@@ -480,6 +504,7 @@
         window.addEventListener("DOMContentLoaded", () => {
             const savedTheme = getCookie("userAppTheme") || "Rise";
             applyThemeColors(savedTheme);
+            activeConfigMatrix.UITheme = savedTheme;
 
             const savedKey = getCookie("luma_auth_key");
             if (savedKey) {
