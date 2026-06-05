@@ -27,7 +27,7 @@
             transition: background-color 0.2s, color 0.2s;
         }
 
-        /* Sidebar Architecture */
+        /* Sidebar Navigation Layout */
         .sidebar {
             width: 250px;
             background-color: var(--bg-sidebar);
@@ -35,7 +35,7 @@
             display: flex;
             flex-direction: column;
             padding: 25px 15px;
-            gap: 8px;
+            gap: 6px;
             box-sizing: border-box;
             overflow-y: auto;
         }
@@ -49,7 +49,6 @@
             letter-spacing: 1px;
         }
 
-        /* Tab Layout Styling */
         .tab-button {
             background-color: transparent;
             border: none;
@@ -86,7 +85,7 @@
             border-radius: 0 4px 4px 0;
         }
 
-        /* Main Viewport Container */
+        /* Viewport Display Layout */
         .main-window {
             flex: 1;
             padding: 40px;
@@ -117,7 +116,6 @@
             opacity: 0.7;
         }
 
-        /* Layout Component Cards */
         .control-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-line);
@@ -141,7 +139,7 @@
             font-size: 1.1rem;
         }
 
-        /* Interface Inputs */
+        /* Dynamic Visual Sliders */
         .slider-wrapper {
             display: flex;
             align-items: center;
@@ -178,35 +176,7 @@
             text-align: center;
         }
 
-        /* Buttons & Console Elements */
-        .action-btn {
-            background-color: var(--accent-primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: opacity 0.2s;
-        }
-
-        .action-btn:hover {
-            opacity: 0.9;
-        }
-
-        .key-box {
-            font-family: monospace;
-            background-color: var(--bg-main);
-            padding: 14px;
-            border-radius: 6px;
-            border: 1px dashed var(--border-line);
-            color: var(--text-primary);
-            margin-top: 15px;
-            word-break: break-all;
-        }
-
-        /* Alerts system */
+        /* Status Alerts System */
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
@@ -221,7 +191,7 @@
         .alert-danger { background-color: #2d1416; color: #ff3344; border: 1px solid #5c1a20; }
         .d-none { display: none !important; }
 
-        /* Extensive Grid Configurations */
+        /* Configuration Themes Grid */
         .themes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -252,35 +222,28 @@
 
     <div class="sidebar">
         <div class="sidebar-brand">Luma</div>
-        <button class="tab-button active" onclick="switchTab(event, 'home-panel')">Home</button>
-        <button class="tab-button" onclick="switchTab(event, 'player-panel')">Player Settings</button>
-        <button class="tab-button" onclick="switchTab(event, 'visuals-panel')">Visuals & Environment</button>
-        <button class="tab-button" onclick="switchTab(event, 'automation-panel')">Automation Options</button>
-        <button class="tab-button" onclick="switchTab(event, 'themes-panel')">Interface Themes</button>
+        <button class="tab-button active" onclick="switchTab(event, 'player-panel')">Player</button>
+        <button class="tab-button" onclick="switchTab(event, 'base-panel')">Base</button>
+        <button class="tab-button" onclick="switchTab(event, 'slot-panel')">Slot</button>
+        <button class="tab-button" onclick="switchTab(event, 'autobuild-panel')">Auto Build</button>
+        <button class="tab-button" onclick="switchTab(event, 'dupe-panel')">Dupe</button>
+        <button class="tab-button" onclick="switchTab(event, 'shop-panel')">Shop</button>
+        <button class="tab-button" onclick="switchTab(event, 'tree-panel')">Tree</button>
+        <button class="tab-button" onclick="switchTab(event, 'settings-panel')">Settings</button>
     </div>
 
     <div class="main-window">
         
-        <div id="home-panel" class="tab-panel active">
-            <h1 class="panel-title">System Hub</h1>
-            <div class="panel-subtitle">Manage session infrastructure and client authorization links</div>
-            
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Session Authorization Token</p></div>
-                <div style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Generate a personal key identifier to sync configurations securely inside your engine ecosystem.</div>
-                <button class="action-btn" onclick="generateAndSaveKey()">Generate Security Key</button>
-                <div class="key-box" id="keyDisplay">No token active. Initialize a configuration profile string above.</div>
-            </div>
-            <div id="statusMessage" class="alert d-none"></div>
-        </div>
+        <div id="statusMessage" class="alert d-none"></div>
+        <br>
 
-        <div id="player-panel" class="tab-panel">
-            <h1 class="panel-title">Player Metrics</h1>
-            <div class="panel-subtitle">Adjust real-time tracking metrics distributed across current instances</div>
+        <div id="player-panel" class="tab-panel active">
+            <h1 class="panel-title">Player Settings</h1>
+            <div class="panel-subtitle">Configure operational engine physics properties</div>
             
             <div class="control-card">
                 <div class="card-header">
-                    <p class="card-title">WalkSpeed Velocity</p>
+                    <p class="card-title">WalkSpeed Parameter</p>
                     <span class="slider-badge" id="walkspeedValue">16</span>
                 </div>
                 <div class="slider-wrapper">
@@ -301,64 +264,48 @@
                            onchange="sendDirectMetric('JumpPower', this.value)">
                 </div>
             </div>
-
-            <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">HipHeight Offset</p>
-                    <span class="slider-badge" id="hipheightValue">0</span>
-                </div>
-                <div class="slider-wrapper">
-                    <input type="range" min="0" max="20" value="0" class="custom-slider" 
-                           oninput="document.getElementById('hipheightValue').innerText = this.value" 
-                           onchange="sendDirectMetric('HipHeight', this.value)">
-                </div>
-            </div>
         </div>
 
-        <div id="visuals-panel" class="tab-panel">
-            <h1 class="panel-title">Visuals & Environment</h1>
-            <div class="panel-subtitle">Configure rendering attributes and lighting matrices</div>
-            
-            <div class="control-card">
-                <button class="action-btn" onclick="sendDirectMetric('FullBright', true)">Enable FullBright Mode</button>
-                <button class="action-btn" style="background-color:#3a3a3a; margin-left:10px;" onclick="sendDirectMetric('FullBright', false)">Disable FullBright</button>
-            </div>
-            <div class="control-card">
-                <button class="action-btn" onclick="sendDirectMetric('NoFog', true)">Clear Environmental Fog</button>
-                <button class="action-btn" style="background-color:#3a3a3a; margin-left:10px;" onclick="sendDirectMetric('NoFog', false)">Restore Default Fog</button>
-            </div>
-            <div class="control-card">
-                <button class="action-btn" onclick="sendDirectMetric('GlobalShadows', false)">Disable Engine Shadows</button>
-                <button class="action-btn" style="background-color:#3a3a3a; margin-left:10px;" onclick="sendDirectMetric('GlobalShadows', true)">Enable Shadows</button>
-            </div>
-        </div>
-
-        <div id="automation-panel" class="tab-panel">
-            <h1 class="panel-title">Automation Engine</h1>
-            <div class="panel-subtitle">Configure sequence multipliers and utility parameters</div>
-            
-            <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">Sign Dupe Iterations</p>
-                    <span class="slider-badge" id="dupeValue">1</span>
-                </div>
-                <div class="slider-wrapper">
-                    <input type="range" min="1" max="25" value="1" class="custom-slider" 
-                           oninput="document.getElementById('dupeValue').innerText = this.value" 
-                           onchange="sendDirectMetric('SignDupeAmount', this.value)">
-                </div>
+        <div id="base-panel" class="tab-panel">
+            <h1 class="panel-title">Base Settings</h1>
+            <div class="panel-subtitle">Placeholder container for layout design properties</div>
             </div>
 
-            <div class="control-card">
-                <button class="action-btn" onclick="sendDirectMetric('AntiAFK', true)">Activate Idle Timeout Prevention</button>
-                <button class="action-btn" style="background-color:#3a3a3a; margin-left:10px;" onclick="sendDirectMetric('AntiAFK', false)">Disable Prevention</button>
+        <div id="slot-panel" class="tab-panel">
+            <h1 class="panel-title">Slot Settings</h1>
+            <div class="panel-subtitle">Placeholder container for layout design properties</div>
             </div>
-        </div>
 
-        <div id="themes-panel" class="tab-panel">
-            <h1 class="panel-title">Interface Themes</h1>
-            <div class="panel-subtitle">Select and update layout parameters down across global tracking endpoints</div>
+        <div id="autobuild-panel" class="tab-panel">
+            <h1 class="panel-title">Auto Build</h1>
+            <div class="panel-subtitle">Placeholder container for layout design properties</div>
+            </div>
+
+        <div id="dupe-panel" class="tab-panel">
+            <h1 class="panel-title">Dupe Settings</h1>
+            <div class="panel-subtitle">Placeholder container for layout design properties</div>
+            </div>
+
+        <div id="shop-panel" class="tab-panel">
+            <h1 class="panel-title">Shop Settings</h1>
+            <div class="panel-subtitle">Placeholder container for layout design properties</div>
+            </div>
+
+        <div id="tree-panel" class="tab-panel">
+            <h1 class="panel-title">Tree Settings</h1>
+            <div class="panel-subtitle">Placeholder container for layout design properties</div>
+            </div>
+
+        <div id="settings-panel" class="tab-panel">
+            <h1 class="panel-title">Settings & Theme Management</h1>
+            <div class="panel-subtitle">Customize application visual profiles and session sync data</div>
             
+            <div class="control-card">
+                <div class="card-header"><p class="card-title">Session Tracking Token</p></div>
+                <button class="action-btn" onclick="generateAndSaveKey()">Generate Profile Key</button>
+                <div class="key-box" id="keyDisplay">No key active. Initialize token above.</div>
+            </div>
+
             <div class="themes-grid">
                 <div class="theme-card" onclick="selectAndSaveTheme('Rise')">Rise</div>
                 <div class="theme-card" onclick="selectAndSaveTheme('Red')">Red</div>
@@ -384,9 +331,8 @@
 
     <script>
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
-        let sessionKey = "DEFAULT_KEY";
+        let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; // Set to your explicit fallback structure value
 
-        // Cookie state storage utilities
         function setCookie(name, value, days = 365) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -404,7 +350,6 @@
             return null;
         }
 
-        // Tab selection manager
         function switchTab(event, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -412,7 +357,6 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Generate tracking session keys
         function generateAndSaveKey() {
             const chars = '0123456789ABCDEF';
             let generatedKey = 'LUMA-';
@@ -420,18 +364,16 @@
             setCookie("luma_auth_key", generatedKey);
             sessionKey = generatedKey;
             document.getElementById("keyDisplay").innerText = generatedKey;
-            
-            triggerNotification("success", "New configuration session generated successfully.");
+            triggerNotification("success", "New configuration key generated successfully.");
         }
 
-        // Theme management module
         function selectAndSaveTheme(themeName) {
             applyThemeColors(themeName);
             setCookie("userAppTheme", themeName);
             sendDirectMetric('UITheme', themeName);
         }
 
-        // DISPATCH CONFIG CHANGES DIRECTLY IN SINGLE KEY-VALUE SHAPES (No massive config variable tracking needed)
+        // DISPATCH SINGLE PROPERTY SHAPES DIRECTLY (No local tracking object variable maintenance needed)
         async function sendDirectMetric(parameterKey, rawValue) {
             let processedValue = rawValue;
             if (rawValue === 'true') processedValue = true;
@@ -443,7 +385,7 @@
             const dataPackage = {};
             dataPackage[parameterKey] = processedValue;
 
-            triggerNotification("warning", `Synchronizing ${parameterKey} value...`);
+            triggerNotification("warning", `Synchronizing data parameter changes [${parameterKey}]...`);
 
             try {
                 const response = await fetch(`${WORKER_URL}/send-config`, {
@@ -458,17 +400,16 @@
                 if (response.ok) {
                     triggerNotification("success", `Data synchronized successfully: [${parameterKey} = ${rawValue}]`);
                 } else {
-                    triggerNotification("danger", "Server rejected configuration syncing payload data.");
+                    triggerNotification("danger", "Server rejected sync profile routing payload.");
                 }
             } catch (err) {
-                triggerNotification("danger", "Network Failure: Unable to complete data pipeline update.");
+                triggerNotification("danger", "Network Error: Failed to reach destination edge gateway node.");
             }
         }
 
         function triggerNotification(type, message) {
             const statusDiv = document.getElementById("statusMessage");
             if (!statusDiv) return;
-            
             statusDiv.className = `alert alert-${type}`;
             statusDiv.innerText = message;
             statusDiv.classList.remove("d-none");
@@ -476,7 +417,6 @@
 
         function applyThemeColors(themeName) {
             const root = document.documentElement;
-            // Palette definitions for restored styles
             const configurations = {
                 "Rise": { main: "#121212", accent: "#ff0004" },
                 "Red": { main: "#140505", accent: "#d91e1e" },
@@ -509,7 +449,8 @@
             const savedKey = getCookie("luma_auth_key");
             if (savedKey) {
                 sessionKey = savedKey;
-                document.getElementById("keyDisplay").innerText = savedKey;
+                const display = document.getElementById("keyDisplay");
+                if(display) display.innerText = savedKey;
             }
         });
     </script>
