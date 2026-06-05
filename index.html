@@ -520,7 +520,7 @@
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Field-Of-View Reset</p></div>
                 <p class="card-desc">reset the FOV</p>
-                <button class="action-btn" onclick="updateConfigParameter('FOV', 70)">Reset FOV</button>
+                <button class="action-btn" onclick="sendLuaCode('Print(1)')">Reset FOV</button>
             </div>
 
             <div class="control-card">
@@ -534,7 +534,7 @@
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Start Spectating Player</p></div>
                 <p class="card-desc">Begin viewing targeted viewport selection</p>
-                <<button class="action-btn" onclick="sendLuaCode(`game.Workspace.Camera.CameraSubject = game.Players[\'${document.getElementById('spectateDropdown').value}\'].Character.Head`);">Start Spectating</button>
+                <button class="action-btn" onclick="sendLuaCode(`game.Workspace.Camera.CameraSubject = game.Players[\'${document.getElementById('spectateDropdown').value}\'].Character.Head`);">Start Spectating</button>
             </div>
 
             <div class="control-card">
@@ -771,21 +771,50 @@ function generateSessionKey() {
         }
 
         async function sendLuaCode(luaString) {
-    const sessionKey = localStorage.getItem("luma_session_key");
+    // 1. Fallback check for the Session Key 
+    // Checks localStorage first, then falls back to a global variable if localStorage is empty
+    const sessionKey = localStorage.getItem("luma_session_key") || (typeof sessionKey !== 'undefined' ? sessionKey : null);
+    
+    // Safety check: Make sure we aren't sending an empty key
+    if (!sessionKey) {
+        console.error("Execution blocked: No session key found in localStorage or state.");
+        alert("Please generate or enter a Profile Key first!");
+        return;
+    }
+
+    // Safety check: Make sure WORKER_URL is defined somewhere in your script
+    if (typeof WORKER_URL === 'undefined' || !WORKER_URL) {
+        console.error("Execution blocked: WORKER_URL is not defined at the top of your script.");
+        alert("Configuration Error: Worker URL is missing.");
+        return;
+    }
+
     try {
-        const response = await fetch(`${WORKER_URL}/send-code`, {
+        // Clean up URL formatting to prevent double slashes (e.g., handles "example.com/" vs "example.com")
+        const cleanUrl = WORKER_URL.endsWith('/') ? `${WORKER_URL}send-code` : `${WORKER_URL}/send-code`;
+
+        const response = await fetch(cleanUrl, {
             method: "POST",
             headers: {
-                    "Content-Type": "application/json"
-                },
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
-                    key: sessionKey,
-                    code: luaString
-                })
+                key: sessionKey,
+                code: luaString
+            })
         });
-        console.log("Code packet sent to worker");
+
+        // 2. Check if the server actually accepted it (e.g., 200 OK vs 403 Forbidden / 500 Error)
+        if (response.ok) {
+            console.log("Code packet successfully sent to worker:", luaString);
+        } else {
+            const errorText = await response.text();
+            console.error(`Worker responded with an error status (${response.status}):`, errorText);
+        }
+
     } catch (err) {
-        console.error("Execution request failed:", err);
+        // 3. Catches Network errors / CORS blocks
+        console.error("Network or CORS execution request failed:", err);
     }
 }
 
