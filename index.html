@@ -24,6 +24,7 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
+            transition: background-color 0.2s ease;
         }
 
         /* Sidebar Navigation Layout */
@@ -37,6 +38,7 @@
             gap: 6px;
             box-sizing: border-box;
             overflow-y: auto;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
         .sidebar-brand {
@@ -146,6 +148,7 @@
             padding: 18px 22px;
             margin-bottom: 15px;
             max-width: 600px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
         .card-header {
@@ -317,6 +320,12 @@
             font-weight: 600;
             color: var(--text-primary);
             font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-card:hover {
+            border-color: var(--accent-primary);
+            background-color: var(--tab-hover);
         }
 
         /* Profile Banner Tags */
@@ -629,19 +638,20 @@
             <h1 class="panel-title">Settings & Theme Management</h1>
             <div class="panel-subtitle">Customize application visual profiles and saved styling layouts</div>
 
+            <div class="ui-label">Select Active Interface Scheme</div>
             <div class="themes-grid">
-                <div class="theme-card">Rise</div>
-                <div class="theme-card">Red</div>
-                <div class="theme-card">Hawk</div>
-                <div class="theme-card">Cyberpunk</div>
-                <div class="theme-card">TokyoNight</div>
-                <div class="theme-card">OLED</div>
-                <div class="theme-card">BloodRed</div>
-                <div class="theme-card">White</div>
-                <div class="theme-card">Ubuntu</div>
-                <div class="theme-card">Glacier</div>
-                <div class="theme-card">Midnight</div>
-                <div class="theme-card">Anime</div>
+                <div class="theme-card" onclick="applyThemeProfile('Rise')">Rise</div>
+                <div class="theme-card" onclick="applyThemeProfile('Red')">Red</div>
+                <div class="theme-card" onclick="applyThemeProfile('Hawk')">Hawk</div>
+                <div class="theme-card" onclick="applyThemeProfile('Cyberpunk')">Cyberpunk</div>
+                <div class="theme-card" onclick="applyThemeProfile('TokyoNight')">TokyoNight</div>
+                <div class="theme-card" onclick="applyThemeProfile('OLED')">OLED</div>
+                <div class="theme-card" onclick="applyThemeProfile('BloodRed')">BloodRed</div>
+                <div class="theme-card" onclick="applyThemeProfile('White')">White</div>
+                <div class="theme-card" onclick="applyThemeProfile('Ubuntu')">Ubuntu</div>
+                <div class="theme-card" onclick="applyThemeProfile('Glacier')">Glacier</div>
+                <div class="theme-card" onclick="applyThemeProfile('Midnight')">Midnight</div>
+                <div class="theme-card" onclick="applyThemeProfile('Anime')">Anime</div>
             </div>
         </div>
 
@@ -659,10 +669,27 @@
         let activeConfigMatrix = {
             WalkSpeed: 16,
             JumpPower: 50,
-            PlayerToView: ''
+            PlayerToView: '',
+            UITheme: 'Rise'
         };
 
-        // Static Tab Switcher logic remains to navigate panel layers visually
+        // Complete Theme Hex Schema Matrix definitions
+        const themeHexMatrices = {
+            Rise: { main: '#121212', sidebar: '#181818', card: '#1f1f1f', text1: '#ffffff', text2: '#aaaaaa', accent: '#ff0000', line: '#2d2d2d', hover: '#2a2a2a' },
+            Red: { main: '#1a0d0d', sidebar: '#261313', card: '#331a1a', text1: '#ffffff', text2: '#d99a9a', accent: '#ff3333', line: '#4d2626', hover: '#3d1f1f' },
+            Hawk: { main: '#0d1117', sidebar: '#161b22', card: '#21262d', text1: '#c9d1d9', text2: '#8b949e', accent: '#58a6ff', line: '#30363d', hover: '#30363d' },
+            Cyberpunk: { main: '#000000', sidebar: '#1a1a1a', card: '#2b2b2b', text1: '#00ff66', text2: '#00ffff', accent: '#ffff00', line: '#333333', hover: '#222222' },
+            TokyoNight: { main: '#1a1b26', sidebar: '#16161e', card: '#1f2335', text1: '#a9b1d6', text2: '#787c99', accent: '#7aa2f7', line: '#24283b', hover: '#292e42' },
+            OLED: { main: '#000000', sidebar: '#000000', card: '#0a0a0a', text1: '#ffffff', text2: '#888888', accent: '#ffffff', line: '#1a1a1a', hover: '#111111' },
+            BloodRed: { main: '#100000', sidebar: '#180000', card: '#250000', text1: '#ff0000', text2: '#aa0000', accent: '#ff0000', line: '#350000', hover: '#200000' },
+            White: { main: '#f0f2f5', sidebar: '#ffffff', card: '#ffffff', text1: '#1c1e21', text2: '#606770', accent: '#1877f2', line: '#e4e6eb', hover: '#f2f3f5' },
+            Ubuntu: { main: '#2c001e', sidebar: '#11000e', card: '#4f1943', text1: '#aea79f', text2: '#dfdbd2', accent: '#e95420', line: '#3d0c2b', hover: '#401235' },
+            Glacier: { main: '#f4f7f6', sidebar: '#eef2f1', card: '#ffffff', text1: '#2c3e50', text2: '#7f8c8d', accent: '#3498db', line: '#d2d7d9', hover: '#e2e7e9' },
+            Midnight: { main: '#020617', sidebar: '#0f172a', card: '#1e293b', text1: '#f8fafc', text2: '#94a3b8', accent: '#38bdf8', line: '#334155', hover: '#334155' },
+            Anime: { main: '#fff0f5', sidebar: '#ffe4e1', card: '#ffffff', text1: '#ff69b4', text2: '#ffb6c1', accent: '#ff1493', line: '#ffc0cb', hover: '#fff0f5' }
+        };
+
+        // Static Tab Switcher logic to navigate panel layers visually
         function switchTab(event, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -670,7 +697,26 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Operational adjustments for WalkSpeed, JumpPower, and Player Selection dropdown
+        // Action routing to apply style rules across CSS token roots
+        function applyThemeProfile(themeName) {
+            const tokens = themeHexMatrices[themeName];
+            if (!tokens) return;
+
+            const rootElement = document.documentElement;
+            rootElement.style.setProperty('--bg-main', tokens.main);
+            rootElement.style.setProperty('--bg-sidebar', tokens.sidebar);
+            rootElement.style.setProperty('--bg-card', tokens.card);
+            rootElement.style.setProperty('--text-primary', tokens.text1);
+            rootElement.style.setProperty('--text-secondary', tokens.text2);
+            rootElement.style.setProperty('--accent-primary', tokens.accent);
+            rootElement.style.setProperty('--border-line', tokens.line);
+            rootElement.style.setProperty('--tab-hover', tokens.hover);
+
+            activeConfigMatrix.UITheme = themeName;
+            syncGlobalConfigMatrix();
+        }
+
+        // Updates local parameters and routes data straight to pipeline sync channels
         function updateConfigParameter(keyName, rawValue) {
             if (keyName === 'PlayerToView') {
                 activeConfigMatrix[keyName] = rawValue;
@@ -682,7 +728,7 @@
 
         async function syncGlobalConfigMatrix() {
             try {
-                await fetch(`${WORKER_URL}/send-config`, {
+                await fetch(`${WORKER_URL}/send-config?key=${sessionKey}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
@@ -695,7 +741,7 @@
             }
         }
 
-        // Operational Dropdown Polling Loop (Fetches and handles active usernames)
+        // Background polling cycle loops looking for active data tables from worker
         async function fetchStateFromWorker() {
             try {
                 const response = await fetch(`${WORKER_URL}/get-state?key=${sessionKey}`);
@@ -727,7 +773,7 @@
                     if (dropdownElement) {
                         dropdownElement.innerHTML = "";
                         
-                        // Filter out local player name dynamically
+                        // Filter out local player name dynamically from target view menu
                         const filteredPlayers = linkedSessionState.connectedClientsList.filter(
                             player => player !== linkedSessionState.localPlayerName
                         );
@@ -753,6 +799,9 @@
         window.addEventListener("DOMContentLoaded", () => {
             // Continually poll worker node every 2 seconds for fresh game player maps
             setInterval(fetchStateFromWorker, 2000);
+            
+            // Set default theme scheme on display mount
+            applyThemeProfile('Rise');
         });
     </script>
 </body>
