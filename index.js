@@ -1,154 +1,190 @@
+// Global In-Memory Cache (Stores active player names cleanly without a database)
+const globalStateStorage = {};
+
+// Default Base Configurations Template Matrix
+const defaultConfigurationMatrix = {
+    WalkSpeed: 16,
+    JumpPower: 50,
+    HipHeight: 16,
+    FlySpeed: 50,
+    FlyKey: 'E',
+    Noclip: false,
+    Invis: false,
+    AntiAFK: false,
+    Flashlight: false,
+    InfZoom: false,
+    FOV: 70,
+    PlayerToView: '',
+    FastCheckout: false,
+    HardDragger: false,
+    AlwaysDay: false,
+    AlwaysNight: false,
+    NoFog: false,
+    SignDupeAmount: 1,
+    TeleportWithTree: true,
+    SelectedTreeTypeSize: 'Largest',
+    AutoSaveGUIConfiguration: true,
+    GlobalShadows: true,
+    UnboxItems: false,
+    FreeCamera: false,
+    DropAxeAfterDupe: false,
+    SellPlankAfterMilling: false,
+    UITheme: 'Rise'
+};
+
+// Main Network Pipeline Event Receiver
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
+    async fetch(request, env, ctx) {
+        const url = new URL(request.url);
+        const method = request.method;
 
-    // Handle CORS preflight requests so your web browser is allowed to communicate with Cloudflare
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      });
-    }
+        // Setup standard open cross-origin safety header tokens
+        const corsHeaders = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Content-Type": "application/json"
+        };
 
-    // ==========================================
-    // 1. ORIGINAL SCRIPT CODE ENDPOINTS
-    // ==========================================
-
-    // FRONTEND WEBSITE SENDS CODE HERE (/send-code)
-    if (request.method === "POST" && url.pathname === "/send-code") {
-      try {
-        const data = await request.json();
-        const sessionKey = data.key;
-        const luauCode = data.code;
-
-        if (!sessionKey || !luauCode) {
-          return new Response("Missing session key or code payload.", { 
-            status: 400, 
-            headers: { "Access-Control-Allow-Origin": "*" } 
-          });
+        // Handle preflight safety handshake requests smoothly
+        if (method === "OPTIONS") {
+            return new Response(null, { headers: corsHeaders });
         }
 
-        // Save script data directly to the KV Namespace under a specific prefix
-        await env.ROBLOX_QUEUE.put(`code:${sessionKey}`, luauCode);
+        // Parse incoming key tokens from URL query lines (?key=LUMA-...)
+        const sessionKey = url.searchParams.get("key");
 
-        return new Response("Code successfully cached at the edge network.", {
-          status: 200,
-          headers: { "Access-Control-Allow-Origin": "*" }
-        });
-      } catch (err) {
-        return new Response("Invalid request payload syntax.", { 
-          status: 400, 
-          headers: { "Access-Control-Allow-Origin": "*" } 
-        });
-      }
-    }
+        // Helper to initialize missing session tracking layers dynamically
+        const enforceSessionMemory = (key) => {
+            if (!globalStateStorage[key]) {
+                globalStateStorage[key] = {
+                    config: { ...defaultConfigurationMatrix },
+                    codePayload: "",
+                    localPlayerName: "",
+                    connectedClientsList: []
+                };
+            }
+        };
 
-    // ROBLOX PICKS UP CODE HERE (/get-code)
-    if (request.method === "GET" && url.pathname === "/get-code") {
-      const sessionKey = url.searchParams.get("key");
+        // --------------------------------------------------------
+        // 1. ROUTE: /update-state (POST) - Called by Roblox Lua Script
+        // --------------------------------------------------------
+        if (url.pathname === "/update-state" && method === "POST") {
+            try {
+                const incomingPayload = await request.json();
+                const clientKey = incomingPayload.key;
 
-      if (!sessionKey) {
-        return new Response("Missing search identification parameter key.", { 
-          status: 400, 
-          headers: { "Access-Control-Allow-Origin": "*" } 
-        });
-      }
+                if (!clientKey) {
+                    return new Response(JSON.stringify({ error: "Missing identity token verification." }), { status: 400, headers: corsHeaders });
+                }
 
-      // Fetch the queued text execution package from KV Storage
-      const cachedCode = await env.ROBLOX_QUEUE.get(`code:${sessionKey}`);
+                enforceSessionMemory(clientKey);
 
-      if (cachedCode) {
-        // Clear it out so it executes exactly once
-        await env.ROBLOX_QUEUE.delete(`code:${sessionKey}`);
-        
-        return new Response(cachedCode, {
-          status: 200,
-          headers: { 
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "text/plain"
-          }
-        });
-      }
+                // Cache structural active state registers
+                globalStateStorage[clientKey].localPlayerName = incomingPayload.localPlayerName || "";
+                globalStateStorage[clientKey].connectedClientsList = incomingPayload.connectedClientsList || [];
 
-      return new Response("", { 
-        status: 200, 
-        headers: { "Access-Control-Allow-Origin": "*" } 
-      });
-    }
-
-    // ==========================================
-    // 2. NEW CONFIGURATION SYNC ENDPOINTS
-    // ==========================================
-
-    // FRONTEND WEBSITE SAVES FULL CONFIGS HERE (/send-config)
-    if (request.method === "POST" && url.pathname === "/send-config") {
-      try {
-        const data = await request.json();
-        const sessionKey = data.key;
-        const configObject = data.config; // Expects the full JavaScript settings dictionary object
-
-        if (!sessionKey || !configObject) {
-          return new Response("Missing session key or config structure payload.", { 
-            status: 400, 
-            headers: { "Access-Control-Allow-Origin": "*" } 
-          });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: "Payload parsing execution exception." }), { status: 400, headers: corsHeaders });
+            }
         }
 
-        // Stringify and store the configuration properties securely under a config prefix
-        await env.ROBLOX_QUEUE.put(`config:${sessionKey}`, JSON.stringify(configObject));
+        // --------------------------------------------------------
+        // 2. ROUTE: /get-state (GET) - Called by Webpage Polling
+        // --------------------------------------------------------
+        if (url.pathname === "/get-state" && method === "GET") {
+            if (!sessionKey) {
+                return new Response(JSON.stringify({ error: "Required identifier parameter empty." }), { status: 400, headers: corsHeaders });
+            }
 
-        return new Response("Configuration state successfully synchronized.", {
-          status: 200,
-          headers: { "Access-Control-Allow-Origin": "*" }
-        });
-      } catch (err) {
-        return new Response("Invalid request config payload syntax.", { 
-          status: 400, 
-          headers: { "Access-Control-Allow-Origin": "*" } 
-        });
-      }
+            const activeSession = globalStateStorage[sessionKey];
+            if (!activeSession) {
+                return new Response(JSON.stringify({ localPlayerName: "", connectedClientsList: [] }), { status: 200, headers: corsHeaders });
+            }
+
+            return new Response(JSON.stringify({
+                localPlayerName: activeSession.localPlayerName,
+                connectedClientsList: activeSession.connectedClientsList
+            }), { status: 200, headers: corsHeaders });
+        }
+
+        // --------------------------------------------------------
+        // 3. ROUTE: /get-config (GET) - Polled by Roblox Lua Script
+        // --------------------------------------------------------
+        if (url.pathname === "/get-config" && method === "GET") {
+            if (!sessionKey) {
+                return new Response("Missing tracking access parameters.", { status: 400, headers: corsHeaders });
+            }
+
+            enforceSessionMemory(sessionKey);
+            return new Response(JSON.stringify(globalStateStorage[sessionKey].config), { status: 200, headers: corsHeaders });
+        }
+
+        // --------------------------------------------------------
+        // 4. ROUTE: /send-config (POST) - Called by Webpage Config Updates
+        // --------------------------------------------------------
+        if (url.pathname === "/send-config" && method === "POST") {
+            try {
+                const incomingPayload = await request.json();
+                const clientKey = incomingPayload.key;
+
+                if (!clientKey) {
+                    return new Response(JSON.stringify({ error: "Validation key parameters absent." }), { status: 400, headers: corsHeaders });
+                }
+
+                enforceSessionMemory(clientKey);
+
+                // Merge configuration adjustments cleanly
+                globalStateStorage[clientKey].config = { ...globalStateStorage[clientKey].config, ...incomingPayload.config };
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: "Invalid layout data matrix transmission." }), { status: 400, headers: corsHeaders });
+            }
+        }
+
+        // --------------------------------------------------------
+        // 5. ROUTE: /get-code (GET) - Polled by Roblox Lua Script
+        // --------------------------------------------------------
+        if (url.pathname === "/get-code" && method === "GET") {
+            if (!sessionKey) {
+                return new Response("Missing tracking access parameters.", { status: 400, headers: corsHeaders });
+            }
+
+            enforceSessionMemory(sessionKey);
+            
+            // Extract the pending payload script string
+            const payload = globalStateStorage[sessionKey].codePayload || "";
+            
+            // Self-clearing mechanism so it doesn't loop execute the same payload string continuously
+            globalStateStorage[sessionKey].codePayload = ""; 
+
+            return new Response(payload, { status: 200, headers: { ...corsHeaders, "Content-Type": "text/plain" } });
+        }
+
+        // --------------------------------------------------------
+        // 6. ROUTE: /send-code (POST) - Called by Webpage Code Sender
+        // --------------------------------------------------------
+        if (url.pathname === "/send-code" && method === "POST") {
+            try {
+                const incomingPayload = await request.json();
+                const clientKey = incomingPayload.key;
+
+                if (!clientKey || !incomingPayload.code) {
+                    return new Response(JSON.stringify({ error: "Execution context components validation failure." }), { status: 400, headers: corsHeaders });
+                }
+
+                enforceSessionMemory(clientKey);
+
+                // Cache raw execution plain text instructions into queue registers
+                globalStateStorage[clientKey].codePayload = incomingPayload.code;
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: "Action processing payload failure." }), { status: 400, headers: corsHeaders });
+            }
+        }
+
+        // Catch-all response for unmatched paths
+        return new Response(JSON.stringify({ error: "Target infrastructure endpoint routing mapping absent." }), { status: 404, headers: corsHeaders });
     }
-
-    // ROBLOX POLLS COMPLEX PROPERTIES HERE (/get-config)
-    if (request.method === "GET" && url.pathname === "/get-config") {
-      const sessionKey = url.searchParams.get("key");
-
-      if (!sessionKey) {
-        return new Response("Missing search identification parameter key.", { 
-          status: 400, 
-          headers: { "Access-Control-Allow-Origin": "*" } 
-        });
-      }
-
-      const storedConfig = await env.ROBLOX_QUEUE.get(`config:${sessionKey}`);
-
-      if (storedConfig) {
-        return new Response(storedConfig, {
-          status: 200,
-          headers: { 
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json" // Informs the client it is a strict JSON object
-          }
-        });
-      }
-
-      // Return an empty JSON object layout if no configuration matrix has been pushed yet
-      return new Response(JSON.stringify({}), { 
-        status: 200, 
-        headers: { 
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type": "application/json"
-        } 
-      });
-    }
-
-    // Final fallback catching mismatched parameters or raw endpoint roots
-    return new Response("Endpoint Not Found or Method Not Allowed", { 
-      status: 404, 
-      headers: { "Access-Control-Allow-Origin": "*" } 
-    });
-  },
 };
