@@ -780,44 +780,9 @@
         function processIncomingServerStateUpdate(incomingPayload) {
             if (incomingPayload.localPlayerName) {
                 linkedSessionState.localPlayerName = incomingPayload.localPlayerName;
-                const statusContainer = document.getElementById("playerConnectionStatus");
-                if (statusContainer) {
-                    statusContainer.innerHTML = `<span class="profile-tag">Linked Player: ${linkedSessionState.localPlayerName}</span>`;
-                }
-            }
-
-            if (incomingPayload.connectedClientsList && Array.isArray(incomingPayload.connectedClientsList)) {
-                if (JSON.stringify(linkedSessionState.connectedClientsList) !== JSON.stringify(incomingPayload.connectedClientsList)) {
-                    linkedSessionState.connectedClientsList = incomingPayload.connectedClientsList;
-                    
-                    const dropdownElement = document.getElementById("spectateDropdown");
-                    if (dropdownElement) {
-                        dropdownElement.innerHTML = "";
-                        
-                        const filteredPlayers = linkedSessionState.connectedClientsList.filter(
-                            player => player !== linkedSessionState.localPlayerName
-                        );
-
-                        if (filteredPlayers.length === 0) {
-                            dropdownElement.innerHTML = '<option value="">-- No Other Active Players Detected --</option>';
-                        } else {
-                            filteredPlayers.forEach(player => {
-                                const opt = document.createElement("option");
-                                opt.value = player;
-                                opt.innerText = player;
-                                if (activeConfigMatrix.PlayerToView === player) {
-                                    opt.selected = true;
-                                }
-                                dropdownElement.appendChild(opt);
-                            });
-                        }
-                    }
-                }
+                document.getElementById('playerConnectionStatus').innerHTML = `<span class="profile-tag">Linked Player: ${incomingPayload.localPlayerName}</span>`;
             }
         }
-
-        // Set up polling
-        setInterval(fetchStateFromWorker, 3000);
     </script>
 </body>
 </html>
