@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luma Dashboard</title>
+    <title>Luma Control Panel</title>
     <style>
+        /* Base Application Layout CSS Variables mapped across themes */
         :root {
             --bg-main: #fff0f3;
             --bg-sidebar: #ffeaef;
             --bg-card: #ffffff;
             --text-primary: #d63384;
             --text-secondary: #c95276;
-            --accent-pink: #ff85a2;
-            --border-pink: #ffe3e8;
+            --accent-primary: #ff85a2;
+            --border-line: #ffe3e8;
             --tab-hover: #ffd1dc;
         }
 
@@ -20,45 +21,47 @@
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-main);
+            color: var(--text-secondary);
             display: flex;
             height: 100vh;
             overflow: hidden;
+            transition: background-color 0.2s, color 0.2s;
         }
 
-        /* Sidebar Navigation Layout */
+        /* Sidebar Architecture */
         .sidebar {
             width: 240px;
             background-color: var(--bg-sidebar);
-            border-right: 2px solid var(--border-pink);
+            border-right: 2px solid var(--border-line);
             display: flex;
             flex-direction: column;
             padding: 25px 15px;
-            gap: 12px;
+            gap: 10px;
             box-sizing: border-box;
+            transition: background-color 0.2s, border-color 0.2s;
         }
 
         .sidebar-brand {
             font-size: 1.4rem;
-            font-weight: 500;
-            color: var(--accent-pink);
+            font-weight: bold;
+            color: var(--text-primary);
             margin-bottom: 15px;
             padding-left: 10px;
         }
 
-        /* Navigation Tab Buttons */
+        /* Tab Item Navigation Buttons */
         .tab-button {
             background-color: var(--bg-card);
             border: none;
             padding: 14px 18px;
             text-align: left;
             font-size: 0.95rem;
-            color: var(--text-primary);
+            color: var(--text-secondary);
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
             font-weight: 500;
-            box-shadow: 0 2px 4px rgba(214, 51, 132, 0.04);
         }
 
         .tab-button:hover {
@@ -66,9 +69,9 @@
             transform: translateX(2px);
         }
 
-        /* Active Left Indicator Line */
         .tab-button.active {
-            background-color: #ffe3e8;
+            background-color: var(--tab-hover);
+            color: var(--text-primary);
             font-weight: bold;
         }
 
@@ -79,11 +82,11 @@
             top: 25%;
             height: 50%;
             width: 5px;
-            background-color: var(--text-primary);
+            background-color: var(--accent-primary);
             border-radius: 0 4px 4px 0;
         }
 
-        /* Main Window View Area */
+        /* Main Workspace Routing Framework */
         .main-window {
             flex: 1;
             padding: 40px;
@@ -91,7 +94,6 @@
             box-sizing: border-box;
         }
 
-        /* Dynamic Panel Switching classes */
         .tab-panel {
             display: none;
         }
@@ -105,13 +107,39 @@
             font-size: 1.8rem;
             margin-top: 0;
             margin-bottom: 5px;
-            font-weight: 500;
+            font-weight: bold;
         }
 
         .panel-subtitle {
-            color: #a07e88;
+            color: var(--text-secondary);
             margin-bottom: 30px;
             font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        /* Settings Interactive Customization Elements */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .theme-card {
+            background-color: var(--bg-card);
+            border: 2px solid var(--border-line);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-primary);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-primary);
         }
     </style>
 </head>
@@ -130,63 +158,214 @@
     </div>
 
     <div class="main-window">
-        
         <div id="player-panel" class="tab-panel active">
             <h1 class="panel-title">Player Settings</h1>
-            <div class="panel-subtitle">Modify Local Player Settings</div>
-            </div>
+            <div class="panel-subtitle">Configure application runtime attributes</div>
+        </div>
 
         <div id="base-panel" class="tab-panel">
             <h1 class="panel-title">Base Options</h1>
-            <div class="panel-subtitle">Manage base configurations</div>
+            <div class="panel-subtitle">Manage structural layout choices</div>
         </div>
 
         <div id="slot-panel" class="tab-panel">
-            <h1 class="panel-title">Slot Configuration</h1>
-            <div class="panel-subtitle">Adjust slot specific items</div>
+            <h1 class="panel-title">Slot Config</h1>
+            <div class="panel-subtitle">Manage slot parameter configurations</div>
         </div>
 
         <div id="autobuild-panel" class="tab-panel">
-            <h1 class="panel-title">Auto Build Settings</h1>
-            <div class="panel-subtitle">Automation rules and triggers</div>
+            <h1 class="panel-title">Auto Build</h1>
+            <div class="panel-subtitle">Configure blueprint parameters</div>
         </div>
 
         <div id="dupe-panel" class="tab-panel">
             <h1 class="panel-title">Dupe Utilities</h1>
-            <div class="panel-subtitle">Manage inventory utilities</div>
+            <div class="panel-subtitle">Manage processing pipelines</div>
         </div>
 
         <div id="shop-panel" class="tab-panel">
-            <h1 class="panel-title">Shop Panel</h1>
-            <div class="panel-subtitle">Interface shopping utilities</div>
+            <h1 class="panel-title">Shop Options</h1>
+            <div class="panel-subtitle">Manage procurement interfaces</div>
         </div>
 
         <div id="tree-panel" class="tab-panel">
-            <h1 class="panel-title">Tree Management</h1>
-            <div class="panel-subtitle">Environment configurations</div>
+            <h1 class="panel-title">Tree Layout</h1>
+            <div class="panel-subtitle">Environmental object layout configs</div>
         </div>
 
         <div id="settings-panel" class="tab-panel">
             <h1 class="panel-title">System Settings</h1>
-            <div class="panel-subtitle">Global adjustments and session configurations</div>
+            <div class="panel-subtitle">Select a visual layout theme to save to local environment cookies</div>
+            
+            <div class="settings-grid">
+                <div class="theme-card" onclick="selectAndSaveTheme('Rise')">Rise</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Hawk')">Hawk</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Red')">Red</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Cyberpunk')">Cyberpunk</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('TokyoNight')">Tokyo Night</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('OLED')">OLED Dark</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('BloodRed')">Blood Red</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('White')">Classic White</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Ubuntu')">Ubuntu Terminal</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Glacier')">Glacier Ice</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Midnight')">Midnight Space</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Anime')">Anime Blossom</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Femboy')">Femboy Pastel</div>
+            </div>
         </div>
-
     </div>
 
     <script>
         function switchTab(event, panelId) {
-            // Hide all tab panels
             const panels = document.querySelectorAll('.tab-panel');
             panels.forEach(panel => panel.classList.remove('active'));
 
-            // Remove active appearance from all buttons
             const buttons = document.querySelectorAll('.tab-button');
             buttons.forEach(button => button.classList.remove('active'));
 
-            // Show current panel and add active styling to the clicked button
             document.getElementById(panelId).classList.add('active');
             event.currentTarget.classList.add('active');
         }
+
+        // Translation of Lua theme colors straight into active CSS environment variables
+        function applyThemeColors(themeName) {
+            const root = document.documentElement;
+
+            if (themeName === "Rise") {
+                root.style.setProperty('--bg-main', '#121212');
+                root.style.setProperty('--bg-sidebar', '#242424');
+                root.style.setProperty('--bg-card', '#1b1b1b');
+                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--text-secondary', '#ababaa');
+                root.style.setProperty('--accent-primary', '#ff0004');
+                root.style.setProperty('--border-line', '#272727');
+                root.style.setProperty('--tab-hover', '#2d2d2d');
+            } else if (themeName === "Hawk") {
+                root.style.setProperty('--bg-main', '#191919');
+                root.style.setProperty('--bg-sidebar', '#232323');
+                root.style.setProperty('--bg-card', '#232323');
+                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--text-secondary', '#ababaa');
+                root.style.setProperty('--accent-primary', '#ff4242');
+                root.style.setProperty('--border-line', '#2c2c2c');
+                root.style.setProperty('--tab-hover', '#2d2d32');
+            } else if (themeName === "Red") {
+                root.style.setProperty('--bg-main', '#140f0f');
+                root.style.setProperty('--bg-sidebar', '#231919');
+                root.style.setProperty('--bg-card', '#231919');
+                root.style.setProperty('--text-primary', '#fff0f0');
+                root.style.setProperty('--text-secondary', '#c8b4b4');
+                root.style.setProperty('--accent-primary', '#ff3c50');
+                root.style.setProperty('--border-line', '#ff3c50');
+                root.style.setProperty('--tab-hover', '#2d1e1e');
+            } else if (themeName === "Cyberpunk") {
+                root.style.setProperty('--bg-main', '#0a0a14');
+                root.style.setProperty('--bg-sidebar', '#141428');
+                root.style.setProperty('--bg-card', '#141423');
+                root.style.setProperty('--text-primary', '#00ffff');
+                root.style.setProperty('--text-secondary', '#c8c8ff');
+                root.style.setProperty('--accent-primary', '#ff00ff');
+                root.style.setProperty('--border-line', '#ff00ff');
+                root.style.setProperty('--tab-hover', '#141e32');
+            } else if (themeName === "TokyoNight") {
+                root.style.setProperty('--bg-main', '#1a1b26');
+                root.style.setProperty('--bg-sidebar', '#242532');
+                root.style.setProperty('--bg-card', '#2b2d3f');
+                root.style.setProperty('--text-primary', '#a9b1d6');
+                root.style.setProperty('--text-secondary', '#c0cad6');
+                root.style.setProperty('--accent-primary', '#7aa2f7');
+                root.style.setProperty('--border-line', '#565f89');
+                root.style.setProperty('--tab-hover', '#35374d');
+            } else if (themeName === "OLED") {
+                root.style.setProperty('--bg-main', '#000000');
+                root.style.setProperty('--bg-sidebar', '#0a0a0a');
+                root.style.setProperty('--bg-card', '#0c0c0c');
+                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--text-secondary', '#b4b4b4');
+                root.style.setProperty('--accent-primary', '#00ff00');
+                root.style.setProperty('--border-line', '#505050');
+                root.style.setProperty('--tab-hover', '#191919');
+            } else if (themeName === "BloodRed") {
+                root.style.setProperty('--bg-main', '#0f0808');
+                root.style.setProperty('--bg-sidebar', '#1e1212');
+                root.style.setProperty('--bg-card', '#190f0f');
+                root.style.setProperty('--text-primary', '#ff5050');
+                root.style.setProperty('--text-secondary', '#dcbcb4');
+                root.style.setProperty('--accent-primary', '#dc143c');
+                root.style.setProperty('--border-line', '#b40000');
+                root.style.setProperty('--tab-hover', '#321414');
+            } else if (themeName === "White") {
+                root.style.setProperty('--bg-main', '#ffffff');
+                root.style.setProperty('--bg-sidebar', '#ebebf0');
+                root.style.setProperty('--bg-card', '#fafaff');
+                root.style.setProperty('--text-primary', '#32323c');
+                root.style.setProperty('--text-secondary', '#50505a');
+                root.style.setProperty('--accent-primary', '#007aff');
+                root.style.setProperty('--border-line', '#c8c8c8');
+                root.style.setProperty('--tab-hover', '#e6ebf0');
+            } else if (themeName === "Ubuntu") {
+                root.style.setProperty('--bg-main', '#300a24');
+                root.style.setProperty('--bg-sidebar', '#401230');
+                root.style.setProperty('--bg-card', '#401230');
+                root.style.setProperty('--text-primary', '#ffffff');
+                root.style.setProperty('--text-secondary', '#c8b4be');
+                root.style.setProperty('--accent-primary', '#e95420');
+                root.style.setProperty('--border-line', '#e95420');
+                root.style.setProperty('--tab-hover', '#461932');
+            } else if (themeName === "Glacier") {
+                root.style.setProperty('--bg-main', '#f0f8ff');
+                root.style.setProperty('--bg-sidebar', '#dcc8fa');
+                root.style.setProperty('--bg-card', '#f5fcff');
+                root.style.setProperty('--text-primary', '#19374b');
+                root.style.setProperty('--text-secondary', '#466e82');
+                root.style.setProperty('--accent-primary', '#00bfff');
+                root.style.setProperty('--border-line', '#add8e6');
+                root.style.setProperty('--tab-hover', '#d2e6f5');
+            } else if (themeName === "Midnight") {
+                root.style.setProperty('--bg-main', '#0a0a19');
+                root.style.setProperty('--bg-sidebar', '#14142d');
+                root.style.setProperty('--bg-card', '#141428');
+                root.style.setProperty('--text-primary', '#b4c8ff');
+                root.style.setProperty('--text-secondary', '#9696c8');
+                root.style.setProperty('--accent-primary', '#7b0082');
+                root.style.setProperty('--border-line', '#6432b4');
+                root.style.setProperty('--tab-hover', '#23233c');
+            } else if (themeName === "Anime") {
+                root.style.setProperty('--bg-main', '#fff0f5');
+                root.style.setProperty('--bg-sidebar', '#ffdce6');
+                root.style.setProperty('--bg-card', '#fff5fa');
+                root.style.setProperty('--text-primary', '#8b4565');
+                root.style.setProperty('--text-secondary', '#b48296');
+                root.style.setProperty('--accent-primary', '#ff69b4');
+                root.style.setProperty('--border-line', '#ff69b4');
+                root.style.setProperty('--tab-hover', '#ffe6f0');
+            } else if (themeName === "Femboy") {
+                root.style.setProperty('--bg-main', '#fff5fa');
+                root.style.setProperty('--bg-sidebar', '#ffebd2');
+                root.style.setProperty('--bg-card', '#fffafc');
+                root.style.setProperty('--text-primary', '#db7093');
+                root.style.setProperty('--text-secondary', '#b4788c');
+                root.style.setProperty('--accent-primary', '#ff1493');
+                root.style.setProperty('--border-line', '#ffb6c1');
+                root.style.setProperty('--tab-hover', '#ffebf5');
+            }
+        }
+
+        // Saves selection choice into browser environment localStorage cookies
+        function selectAndSaveTheme(themeName) {
+            applyThemeColors(themeName);
+            localStorage.setItem("userAppTheme", themeName);
+        }
+
+        // Validates existing stored theme setups on immediate page render
+        window.addEventListener("DOMContentLoaded", () => {
+            const saved = localStorage.getItem("userAppTheme");
+            if (saved) {
+                applyThemeColors(saved);
+            } else {
+                applyThemeColors("Rise"); // Fallback primary layout initialization
+            }
+        });
     </script>
 </body>
 </html>
