@@ -374,8 +374,8 @@
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Session Tracking Token</p></div>
                 <div style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Generate a personal key identifier to securely sync data parameters with your client.</div>
-                <button class="action-btn">Generate Profile Key</button>
-                <div class="key-box">LUMA-3B318FED251169E1A2DEA27E</div>
+                <button class="action-btn" onclick="generateSessionKey()"> Generate Profile Key </button>
+                <div class="key-box" id="profileKeyBox"> </div>
             </div>
         </div>
 
@@ -534,13 +534,13 @@
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Start Spectating Player</p></div>
                 <p class="card-desc">Begin viewing targeted viewport selection</p>
-                <button class="action-btn" onclick="updateConfigParameter('SpectateMode', true)">Start Spectating</button>
+                <button class="action-btn" onclick="sendLuaCode(`game.Workspace.Camera.CameraSubject = game.Players["${document.getElementById('spectateDropdown').value}"].Character.Head`);">Start Spectating</button>
             </div>
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Stop Spectating Player</p></div>
                 <p class="card-desc">Return camera control back to normal character</p>
-                <button class="action-btn" onclick="updateConfigParameter('SpectateMode', false)">Stop Spectating</button>
+                <button class="action-btn" onclick="sendLuaCode('game.Workspace.Camera.CameraSubject = Player.Character.Humanoid')">Stop Spectating</button>
             </div>
 
             <hr class="ui-line">
@@ -667,7 +667,7 @@
 
     <script>
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
-        const sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
+        let sessionKey = "";
 
         let linkedSessionState = {
             localPlayerName: "",
@@ -713,6 +713,28 @@
             Anime: { main: '#fff0f5', sidebar: '#ffe4e1', card: '#ffffff', text1: '#ff69b4', text2: '#ffb6c1', accent: '#ff1493', line: '#ffc0cb', hover: '#fff0f5' }
         };
 
+        function saveSessionKey(key) {
+    localStorage.setItem("luma_session_key", key);
+}
+
+function loadSessionKey() {
+    return localStorage.getItem("luma_session_key");
+}
+
+function generateSessionKey() {
+    sessionKey = "LUMA-" +
+        crypto.randomUUID()
+            .replace(/-/g, "")
+            .toUpperCase();
+
+    saveSessionKey(sessionKey);
+
+    const keyBox = document.getElementById("profileKeyBox");
+    if (keyBox) keyBox.textContent = sessionKey;
+
+    console.log("Generated:", sessionKey);
+}
+
         function switchTab(event, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -748,6 +770,27 @@
             syncGlobalConfigMatrix();
         }
 
+        async function sendLuaCode(luaString) {
+    const sessionKey = getCookie("luma_session_key");
+    
+    const payload = {
+        key: sessionKey,
+        execute: luaString,
+        timestamp: Date.now()
+    };
+
+    try {
+        await fetch(`${WORKER_URL}/execute?key=${sessionKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        console.log("Code packet sent to worker");
+    } catch (err) {
+        console.error("Execution request failed:", err);
+    }
+}
+
         async function syncGlobalConfigMatrix() {
             try {
                 await fetch(`${WORKER_URL}/send-config?key=${sessionKey}`, {
@@ -778,11 +821,35 @@
         }
 
         function processIncomingServerStateUpdate(incomingPayload) {
-            if (incomingPayload.localPlayerName) {
-                linkedSessionState.localPlayerName = incomingPayload.localPlayerName;
-                document.getElementById('playerConnectionStatus').innerHTML = `<span class="profile-tag">Linked Player: ${incomingPayload.localPlayerName}</span>`;
-            }
-        }
+    console.log("State Update:", incomingPayload);
+
+    if (incomingPayload.localPlayerName) {
+        linkedSessionState.localPlayerName = incomingPayload.localPlayerName;
+
+        document.getElementById("playerConnectionStatus").innerHTML =
+            `<span class="profile-tag">Linked Player: ${incomingPayload.localPlayerName}</span>`;
+    }
+
+    if (Array.isArray(incomingPayload.connectedClientsList)) {
+        const dropdown = document.getElementById("spectateDropdown");
+        const currentValue = dropdown.value;
+
+        dropdown.innerHTML = "";
+
+        incomingPayload.connectedClientsList.forEach(player => {
+            const option = document.createElement("option");
+
+            option.value = player;
+            option.textContent = player;
+
+            dropdown.appendChild(option);
+        });
+
+        if (incomingPayload.connectedClientsList.includes(currentValue))
+            dropdown.value = currentValue;
+    }
+}
+window.addEventListener("DOMContentLoaded",()=>{const s=loadSessionKey();if(s){sessionKey=s;const k=document.getElementById("profileKeyBox");if(k)k.textContent=s;console.log("Loaded saved key:",s)}fetchStateFromWorker();setInterval(fetchStateFromWorker,2000)})
     </script>
 </body>
 </html>
