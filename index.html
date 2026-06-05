@@ -82,19 +82,30 @@
         }
 
         // Initialize Ace Editor window after DOM components load
-        window.onload = () => {
-            document.getElementById("displayKey").innerText = sessionKey;
-            
-            editor = ace.edit("editor-container");
-            editor.setTheme("ace/theme/tomorrow_night_eighties");
-            editor.session.setMode("ace/mode/lua");
-            editor.setShowPrintMargin(false);
-            editor.setOption("cursorStyle", "smooth");
-            editor.setFontSize("14px");
-            editor.setValue("-- Enter custom code here...\nprint('Hello from interface console!')\n");
-            editor.clearSelection();
-        };
-    </script>
+// Initialize Ace Editor window after DOM components load
+window.onload = () => {
+    document.getElementById("displayKey").innerText = sessionKey;
+    
+    // 1. Tell Ace to load the language tools extension module
+    ace.require("ace/ext/language_tools");
+    
+    editor = ace.edit("editor-container");
+    editor.setTheme("ace/theme/tomorrow_night_eighties");
+    editor.session.setMode("ace/mode/lua");
+    editor.setShowPrintMargin(false);
+    editor.setOption("cursorStyle", "smooth");
+    editor.setFontSize("14px");
+    
+    // 2. ENABLE LIVE AUTOCOMPLETE OPTIONS HERE
+    editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+        enableSnippets: true
+    });
+
+    editor.setValue("-- Enter custom code here...\nprint('Hello from interface console!')\n");
+    editor.clearSelection();
+};
 
     <div class="container py-5">
         <div class="row justify-content-center">
