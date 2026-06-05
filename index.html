@@ -278,7 +278,9 @@
                     <span class="slider-badge" id="walkspeedValue">16</span>
                 </div>
                 <div class="slider-wrapper">
-                    <input type="range" min="16" max="150" value="16" class="custom-slider" id="walkspeedSlider" oninput="handleWalkspeedUpdate(this.value)">
+                    <input type="range" min="16" max="150" value="16" class="custom-slider" id="walkspeedSlider" 
+                           oninput="updateSliderText(this.value)" 
+                           onchange="handleWalkspeedTransmission(this.value)">
                 </div>
             </div>
         </div>
@@ -336,7 +338,6 @@
     </div>
 
     <script>
-        // Core view panel swapper
         function switchTab(event, panelId) {
             const panels = document.querySelectorAll('.tab-panel');
             panels.forEach(panel => panel.classList.remove('active'));
@@ -348,29 +349,43 @@
             event.currentTarget.classList.add('active');
         }
 
-        // --- KEY SYSTEM STORAGE CONTROLLER (Saves to Browser Memory) ---
         function generateAndSaveKey() {
             const chars = '0123456789ABCDEF';
             let generatedKey = 'LUMA-';
             for (let i = 0; i < 24; i++) {
                 generatedKey += chars[Math.floor(Math.random() * 16)];
             }
-            
-            // Saves the key string strictly inside browser memory
             localStorage.setItem("luma_auth_key", generatedKey);
             document.getElementById("keyDisplay").innerText = generatedKey;
         }
 
-        // --- WALKSPEED LOCAL VISUAL HANDLER ---
-        function handleWalkspeedUpdate(val) {
-            // Update the layout badge text to match slider instantly
+        // Just changes the text layout number instantly while dragging
+        function updateSliderText(val) {
             document.getElementById("walkspeedValue").innerText = val;
         }
 
-        // --- THEME ENGINE SELECTION MAPPING ---
+        // --- TRANSMISSION PIPELINE: Formats and sends raw text string ---
+        function handleWalkspeedTransmission(val) {
+            const activeKey = localStorage.getItem("luma_auth_key") || "DEFAULT_KEY";
+            
+            // Converts the number into the exact plain-text code layout string you want
+            const luaString = "Config.Test = " + parseInt(val);
+
+            fetch('https://cazed.wtf/api/update-config', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    key: activeKey,
+                    value: luaString // This passes the text payload "Config.Test = X"
+                })
+            })
+            .catch(err => console.error("Pipeline Transmission Error:", err));
+        }
+
         function applyThemeColors(themeName) {
             const root = document.documentElement;
-
             if (themeName === "Rise") {
                 root.style.setProperty('--bg-main', '#121212');
                 root.style.setProperty('--bg-sidebar', '#242424');
@@ -493,17 +508,13 @@
 
         function selectAndSaveTheme(themeName) {
             applyThemeColors(themeName);
-            // Persistent storage handling the theme setting
             localStorage.setItem("userAppTheme", themeName);
         }
 
-        // Initial setup run instantly when page opens
         window.addEventListener("DOMContentLoaded", () => {
-            // Check browser memory cookie for saved theme
             const savedTheme = localStorage.getItem("userAppTheme");
             applyThemeColors(savedTheme ? savedTheme : "Rise");
 
-            // Check browser memory cookie for saved validation key
             const savedKey = localStorage.getItem("luma_auth_key");
             if (savedKey) {
                 document.getElementById("keyDisplay").innerText = savedKey;
