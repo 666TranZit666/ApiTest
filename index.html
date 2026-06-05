@@ -6,690 +6,74 @@
     <title>Luma Control Panel</title>
     <style>
         :root {
-            --bg-main: #121212;
-            --bg-sidebar: #181818;
-            --bg-card: #1f1f1f;
-            --text-primary: #ffffff;
-            --text-secondary: #aaaaaa;
-            --accent-primary: #ff0000;
-            --border-line: #2d2d2d;
-            --tab-hover: #2a2a2a;
+            --bg-main: #121212; --bg-sidebar: #181818; --bg-card: #1f1f1f;
+            --text-primary: #ffffff; --text-secondary: #aaaaaa;
+            --accent-primary: #ff0000; --border-line: #2d2d2d; --tab-hover: #2a2a2a;
         }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-secondary);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            transition: background-color 0.2s ease;
-        }
-
-        /* Sidebar Navigation Layout */
-        .sidebar {
-            width: 250px;
-            background-color: var(--bg-sidebar);
-            border-right: 1px solid var(--border-line);
-            display: flex;
-            flex-direction: column;
-            padding: 25px 15px;
-            gap: 6px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .sidebar-brand {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--text-primary);
-            margin-bottom: 20px;
-            padding-left: 10px;
-            letter-spacing: 1px;
-        }
-
-        .tab-button {
-            background-color: transparent;
-            border: none;
-            padding: 12px 15px;
-            text-align: left;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            font-weight: 500;
-        }
-
-        .tab-button:hover {
-            background-color: var(--tab-hover);
-            color: var(--text-primary);
-        }
-
-        .tab-button.active {
-            background-color: var(--bg-card);
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .tab-button.active::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 25%;
-            height: 50%;
-            width: 4px;
-            background-color: var(--accent-primary);
-            border-radius: 0 4px 4px 0;
-        }
-
-        /* Viewport Display Layout */
-        .main-window {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-
-        .tab-panel {
-            display: none;
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
-        .panel-title {
-            color: var(--text-primary);
-            font-size: 1.8rem;
-            margin-top: 0;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .panel-subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 30px;
-            font-size: 0.95rem;
-            opacity: 0.7;
-        }
-
-        /* UI Organizing Layout Formats */
-        .ui-section-title {
-            color: var(--text-primary);
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin: 25px 0 15px 0;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border-line);
-        }
-
-        .ui-label {
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 1rem;
-            margin: 15px 0 10px 0;
-        }
-
-        .ui-line {
-            height: 1px;
-            background-color: var(--border-line);
-            margin: 25px 0;
-            border: none;
-        }
-
-        .control-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 12px;
-            padding: 18px 22px;
-            margin-bottom: 15px;
-            max-width: 600px;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .card-title {
-            font-weight: bold;
-            color: var(--text-primary);
-            margin: 0;
-            font-size: 1.05rem;
-        }
-
-        .card-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin: 0 0 12px 0;
-            opacity: 0.8;
-        }
-
-        /* Input Controls */
-        .slider-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .custom-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--border-line);
-            outline: none;
-        }
-
-        .custom-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent-primary);
-            cursor: pointer;
-        }
-
-        .slider-badge {
-            background-color: var(--border-line);
-            color: var(--text-primary);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            min-width: 40px;
-            text-align: center;
-        }
-
-        /* Toggle Component */
-        .toggle-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 22px;
-        }
-
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider-switch {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--border-line);
-            transition: .2s;
-            border-radius: 22px;
-        }
-
-        .slider-switch:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: var(--text-primary);
-            transition: .2s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider-switch {
-            background-color: var(--accent-primary);
-        }
-
-        input:checked + .slider-switch:before {
-            transform: translateX(22px);
-        }
-
-        /* Text Box & Inputs */
-        .custom-input {
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-line);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* Action Buttons */
-        .action-btn {
-            background-color: var(--accent-primary);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: opacity 0.2s;
-        }
-
-        .action-btn:hover {
-            opacity: 0.9;
-        }
-
-        .key-box {
-            font-family: monospace;
-            background-color: var(--bg-main);
-            padding: 14px;
-            border-radius: 6px;
-            border: 1px dashed var(--border-line);
-            color: var(--text-primary);
-            margin-top: 15px;
-            word-break: break-all;
-        }
-
-        /* Configuration Themes Grid */
-        .themes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            margin-top: 15px;
-        }
-
-        .theme-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 10px;
-            padding: 15px 10px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-
-        .theme-card:hover {
-            border-color: var(--accent-primary);
-            background-color: var(--tab-hover);
-        }
-
-        /* Profile Banner Tags */
-        .profile-tag {
-            display: inline-block;
-            background-color: var(--border-line);
-            color: var(--text-primary);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-top: 10px;
-            border: 1px solid var(--accent-primary);
-        }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-main); color: var(--text-secondary); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 250px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-line); padding: 25px 15px; display: flex; flex-direction: column; gap: 6px; }
+        .tab-button { background: none; border: none; padding: 12px; color: var(--text-secondary); cursor: pointer; text-align: left; border-radius: 8px; }
+        .tab-button.active { background-color: var(--bg-card); color: var(--text-primary); }
+        .main-window { flex: 1; padding: 40px; overflow-y: auto; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .control-card { background-color: var(--bg-card); border: 1px solid var(--border-line); border-radius: 12px; padding: 18px; margin-bottom: 15px; max-width: 600px; }
+        .card-title { font-weight: bold; color: var(--text-primary); margin: 0 0 5px 0; }
+        .card-desc { font-size: 0.85rem; margin: 0 0 10px 0; }
+        .custom-input { background-color: var(--bg-main); border: 1px solid var(--border-line); color: var(--text-primary); padding: 8px; border-radius: 6px; width: 100%; }
+        .action-btn { background-color: var(--accent-primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .theme-card { background-color: var(--bg-card); border: 1px solid var(--border-line); padding: 10px; cursor: pointer; margin: 5px; display: inline-block; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-brand">Luma</div>
+        <div style="font-weight:bold; font-size:1.5rem; color:#fff; margin-bottom:20px;">Luma</div>
         <button class="tab-button active" onclick="switchTab(event, 'home-panel')">Home</button>
         <button class="tab-button" onclick="switchTab(event, 'player-panel')">Player</button>
-        <button class="tab-button" onclick="switchTab(event, 'base-panel')">Base</button>
-        <button class="tab-button" onclick="switchTab(event, 'slot-panel')">Slot</button>
-        <button class="tab-button" onclick="switchTab(event, 'autobuild-panel')">Auto Build</button>
-        <button class="tab-button" onclick="switchTab(event, 'dupe-panel')">Dupe</button>
-        <button class="tab-button" onclick="switchTab(event, 'shop-panel')">Shop</button>
-        <button class="tab-button" onclick="switchTab(event, 'tree-panel')">Tree</button>
         <button class="tab-button" onclick="switchTab(event, 'settings-panel')">Settings</button>
     </div>
 
     <div class="main-window">
-
+        <!-- Home -->
         <div id="home-panel" class="tab-panel active">
-            <h1 class="panel-title">Welcome to Luma</h1>
-            <div class="panel-subtitle">Manage session infrastructure and client synchronization tokens</div>
-            
+            <h1>Luma Dashboard</h1>
             <div class="control-card">
-                <div class="card-header"><p class="card-title">Active Environment Connection</p></div>
-                <p class="card-desc">Displays the verification status of your local Lua pipeline instance.</p>
-                <div id="playerConnectionStatus">
-                    <span class="profile-tag">Linked Player: None</span>
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Session Tracking Token</p></div>
-                <div style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Generate a personal key identifier to securely sync data parameters with your client.</div>
-                <button class="action-btn">Generate Profile Key</button>
-                <div class="key-box">LUMA-3B318FED251169E1A2DEA27E</div>
+                <p class="card-title">Connection Status</p>
+                <div id="playerConnectionStatus">Waiting for client...</div>
             </div>
         </div>
 
+        <!-- Player -->
         <div id="player-panel" class="tab-panel">
-            <h1 class="panel-title">Player Settings</h1>
-            <div class="panel-subtitle">Configure operational engine physics properties</div>
-            
-            <div class="ui-section-title">Modify Local Player Settings</div>
-
+            <h1>Player Settings</h1>
             <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">Speed</p>
-                    <span class="slider-badge" id="walkspeedValue">16</span>
-                </div>
-                <p class="card-desc">Adjust player speed (16 - 200)</p>
-                <div class="slider-wrapper">
-                    <input type="range" min="16" max="200" value="16" class="custom-slider" id="walkspeedSlider"
-                           oninput="document.getElementById('walkspeedValue').innerText = this.value" 
-                           onchange="updateConfigParameter('WalkSpeed', this.value)">
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">Jump Power</p>
-                    <span class="slider-badge" id="jumppowerValue">50</span>
-                </div>
-                <p class="card-desc">Adjust player Jump Power (50 - 500)</p>
-                <div class="slider-wrapper">
-                    <input type="range" min="50" max="500" value="50" class="custom-slider" id="jumppowerSlider"
-                           oninput="document.getElementById('jumppowerValue').innerText = this.value" 
-                           onchange="updateConfigParameter('JumpPower', this.value)">
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">Hip Height</p>
-                    <span class="slider-badge">16</span>
-                </div>
-                <p class="card-desc">Adjust player HipHeight (16 - 100)</p>
-                <div class="slider-wrapper">
-                    <input type="range" min="16" max="100" value="16" class="custom-slider">
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">Fly Speed</p>
-                    <span class="slider-badge">50</span>
-                </div>
-                <p class="card-desc">Adjust player Fly Speed (50 - 800)</p>
-                <div class="slider-wrapper">
-                    <input type="range" min="50" max="800" value="50" class="custom-slider">
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Fly KeyBind</p></div>
-                <p class="card-desc">Toggle Flight on/off</p>
-                <input type="text" class="custom-input" value="E" maxlength="1" style="width: 80px; text-align: center;">
-            </div>
-
-            <div class="control-card">
-                <div class="toggle-wrapper">
-                    <div>
-                        <p class="card-title">No-Clip</p>
-                        <p class="card-desc" style="margin-bottom:0;">Pass through any wall</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider-switch"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="toggle-wrapper">
-                    <div>
-                        <p class="card-title">Invis</p>
-                        <p class="card-desc" style="margin-bottom:0;">hide your self Server-Side</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider-switch"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Anti-AFK</p></div>
-                <p class="card-desc">Stops the game from kicking the localplayer</p>
-                <button class="action-btn">Activate Anti-AFK</button>
-            </div>
-
-            <div class="control-card">
-                <div class="toggle-wrapper">
-                    <div>
-                        <p class="card-title">Flashlight</p>
-                        <p class="card-desc" style="margin-bottom:0;">A light to see in the dark</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider-switch"></span>
-                    </label>
-                </div>
-            </div>
-
-            <hr class="ui-line">
-            <div class="ui-label">Camera Mods</div>
-
-            <div class="control-card">
-                <div class="toggle-wrapper">
-                    <div>
-                        <p class="card-title">Infinite-Zoom</p>
-                        <p class="card-desc" style="margin-bottom:0;">Change the camera zoom</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider-switch"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">Field-Of-View</p>
-                    <span class="slider-badge">70</span>
-                </div>
-                <p class="card-desc">Change Your Camera FOV (20 - 120)</p>
-                <div class="slider-wrapper">
-                    <input type="range" min="20" max="120" value="70" class="custom-slider">
-                </div>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Field-Of-View Reset</p></div>
-                <p class="card-desc">reset the FOV</p>
-                <button class="action-btn">Reset FOV</button>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Select a player to view</p></div>
-                <p class="card-desc">Filters out local identity dynamically from online game instances</p>
-                <select class="custom-input" id="spectateDropdown" onchange="updateConfigParameter('PlayerToView', this.value)">
-                    <option value="">-- Waiting for Active Instances --</option>
+                <p class="card-title">Spectate Player</p>
+                <select class="custom-input" id="spectateDropdown" onchange="targetPlayerName = this.value">
+                    <option value="">Select a player...</option>
                 </select>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Start Spectating Player</p></div>
-                <p class="card-desc">Begin viewing targeted viewport selection</p>
-                <button class="action-btn">Start Spectating</button>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Stop Spectating Player</p></div>
-                <p class="card-desc">Return camera control back to normal character</p>
-                <button class="action-btn">Stop Spectating</button>
-            </div>
-
-            <hr class="ui-line">
-            <div class="ui-label">Game Options</div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Safe Death</p></div>
-                <p class="card-desc">Respawn without loosing your axes</p>
-                <button class="action-btn">Execute Safe Death</button>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Rejoin Server</p></div>
-                <p class="card-desc">Rejoin the current server</p>
-                <button class="action-btn">Rejoin</button>
-            </div>
-
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Quit Game</p></div>
-                <p class="card-desc">leaves the game</p>
-                <button class="action-btn">Shutdown Instance</button>
-            </div>
-        </div>
-
-        <div id="base-panel" class="tab-panel">
-            <h1 class="panel-title">Base Settings</h1>
-            <div class="panel-subtitle">Configure plot modifications and structure placements</div>
-            <div class="control-card">
-                <div class="toggle-wrapper">
-                    <div>
-                        <p class="card-title">Hard Dragger</p>
-                        <p class="card-desc" style="margin-bottom:0;">Move items with maximum physical velocity forces</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider-switch"></span>
-                    </label>
+                <div style="margin-top:10px;">
+                    <button class="action-btn" onclick="startSpectating()">Start Spectating</button>
+                    <button class="action-btn" onclick="stopSpectating()">Stop</button>
                 </div>
             </div>
         </div>
 
-        <div id="slot-panel" class="tab-panel">
-            <h1 class="panel-title">Slot Settings</h1>
-            <div class="panel-subtitle">Manage dynamic profile saving and safe-slots load processes</div>
-        </div>
-
-        <div id="autobuild-panel" class="tab-panel">
-            <h1 class="panel-title">Auto Build</h1>
-            <div class="panel-subtitle">Construct blueprint designs instantly using inventory components</div>
-        </div>
-
-        <div id="dupe-panel" class="tab-panel">
-            <h1 class="panel-title">Dupe Settings</h1>
-            <div class="panel-subtitle">Configure duplication counts for axis, slots, or signs</div>
-            <div class="control-card">
-                <div class="card-header">
-                    <p class="card-title">Sign Dupe Amount</p>
-                    <span class="slider-badge">1</span>
-                </div>
-                <div class="slider-wrapper">
-                    <input type="range" min="1" max="100" value="1" class="custom-slider">
-                </div>
-            </div>
-        </div>
-
-        <div id="shop-panel" class="tab-panel">
-            <h1 class="panel-title">Shop Settings</h1>
-            <div class="panel-subtitle">Automate cash registers and store terminal inventory purchases</div>
-            <div class="control-card">
-                <div class="toggle-wrapper">
-                    <div>
-                        <p class="card-title">Fast Checkout</p>
-                        <p class="card-desc" style="margin-bottom:0;">Bypass delay check timers instantly at wood store terminals</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider-switch"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div id="tree-panel" class="tab-panel">
-            <h1 class="panel-title">Tree Settings</h1>
-            <div class="panel-subtitle">Configure map-wide wood tracking filters and automation dimensions</div>
-            <div class="control-card">
-                <div class="toggle-wrapper">
-                    <div>
-                        <p class="card-title">Teleport with Tree</p>
-                        <p class="card-desc" style="margin-bottom:0;">Keeps character anchored to log components during fast moves</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider-switch"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
+        <!-- Settings -->
         <div id="settings-panel" class="tab-panel">
-            <h1 class="panel-title">Settings & Theme Management</h1>
-            <div class="panel-subtitle">Customize application visual profiles and saved styling layouts</div>
-
-            <div class="ui-label">Select Active Interface Scheme</div>
-            <div class="themes-grid">
+            <h1>Theme Management</h1>
+            <div id="theme-grid">
                 <div class="theme-card" onclick="applyThemeProfile('Rise')">Rise</div>
-                <div class="theme-card" onclick="applyThemeProfile('Red')">Red</div>
-                <div class="theme-card" onclick="applyThemeProfile('Hawk')">Hawk</div>
-                <div class="theme-card" onclick="applyThemeProfile('Cyberpunk')">Cyberpunk</div>
-                <div class="theme-card" onclick="applyThemeProfile('TokyoNight')">TokyoNight</div>
                 <div class="theme-card" onclick="applyThemeProfile('OLED')">OLED</div>
-                <div class="theme-card" onclick="applyThemeProfile('BloodRed')">BloodRed</div>
-                <div class="theme-card" onclick="applyThemeProfile('White')">White</div>
-                <div class="theme-card" onclick="applyThemeProfile('Ubuntu')">Ubuntu</div>
-                <div class="theme-card" onclick="applyThemeProfile('Glacier')">Glacier</div>
-                <div class="theme-card" onclick="applyThemeProfile('Midnight')">Midnight</div>
-                <div class="theme-card" onclick="applyThemeProfile('Anime')">Anime</div>
             </div>
         </div>
-
     </div>
 
     <script>
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
-        const sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
+        const sessionKey = "LUMA-3B318FED251169E1A2DEA27E";
+        let targetPlayerName = "";
 
-        let linkedSessionState = {
-            localPlayerName: "",
-            connectedClientsList: [] 
-        };
-
-        let activeConfigMatrix = {
-            WalkSpeed: 16,
-            JumpPower: 50,
-            PlayerToView: '',
-            UITheme: 'Rise'
-        };
-
-        // Complete Theme Hex Schema Matrix definitions
-        const themeHexMatrices = {
-            Rise: { main: '#121212', sidebar: '#181818', card: '#1f1f1f', text1: '#ffffff', text2: '#aaaaaa', accent: '#ff0000', line: '#2d2d2d', hover: '#2a2a2a' },
-            Red: { main: '#1a0d0d', sidebar: '#261313', card: '#331a1a', text1: '#ffffff', text2: '#d99a9a', accent: '#ff3333', line: '#4d2626', hover: '#3d1f1f' },
-            Hawk: { main: '#0d1117', sidebar: '#161b22', card: '#21262d', text1: '#c9d1d9', text2: '#8b949e', accent: '#58a6ff', line: '#30363d', hover: '#30363d' },
-            Cyberpunk: { main: '#000000', sidebar: '#1a1a1a', card: '#2b2b2b', text1: '#00ff66', text2: '#00ffff', accent: '#ffff00', line: '#333333', hover: '#222222' },
-            TokyoNight: { main: '#1a1b26', sidebar: '#16161e', card: '#1f2335', text1: '#a9b1d6', text2: '#787c99', accent: '#7aa2f7', line: '#24283b', hover: '#292e42' },
-            OLED: { main: '#000000', sidebar: '#000000', card: '#0a0a0a', text1: '#ffffff', text2: '#888888', accent: '#ffffff', line: '#1a1a1a', hover: '#111111' },
-            BloodRed: { main: '#100000', sidebar: '#180000', card: '#250000', text1: '#ff0000', text2: '#aa0000', accent: '#ff0000', line: '#350000', hover: '#200000' },
-            White: { main: '#f0f2f5', sidebar: '#ffffff', card: '#ffffff', text1: '#1c1e21', text2: '#606770', accent: '#1877f2', line: '#e4e6eb', hover: '#f2f3f5' },
-            Ubuntu: { main: '#2c001e', sidebar: '#11000e', card: '#4f1943', text1: '#aea79f', text2: '#dfdbd2', accent: '#e95420', line: '#3d0c2b', hover: '#401235' },
-            Glacier: { main: '#f4f7f6', sidebar: '#eef2f1', card: '#ffffff', text1: '#2c3e50', text2: '#7f8c8d', accent: '#3498db', line: '#d2d7d9', hover: '#e2e7e9' },
-            Midnight: { main: '#020617', sidebar: '#0f172a', card: '#1e293b', text1: '#f8fafc', text2: '#94a3b8', accent: '#38bdf8', line: '#334155', hover: '#334155' },
-            Anime: { main: '#fff0f5', sidebar: '#ffe4e1', card: '#ffffff', text1: '#ff69b4', text2: '#ffb6c1', accent: '#ff1493', line: '#ffc0cb', hover: '#fff0f5' }
-        };
-
-        // Static Tab Switcher logic to navigate panel layers visually
         function switchTab(event, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -697,111 +81,58 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Action routing to apply style rules across CSS token roots
+        // Theme Cookie Logic
+        function saveThemeToCookie(themeName) {
+            document.cookie = `LumaTheme=${themeName};path=/;max-age=31536000`;
+        }
+
+        function loadThemeFromCookie() {
+            const match = document.cookie.match(new RegExp('(^| )LumaTheme=([^;]+)'));
+            if (match) applyThemeProfile(match[2]);
+        }
+
         function applyThemeProfile(themeName) {
-            const tokens = themeHexMatrices[themeName];
-            if (!tokens) return;
-
-            const rootElement = document.documentElement;
-            rootElement.style.setProperty('--bg-main', tokens.main);
-            rootElement.style.setProperty('--bg-sidebar', tokens.sidebar);
-            rootElement.style.setProperty('--bg-card', tokens.card);
-            rootElement.style.setProperty('--text-primary', tokens.text1);
-            rootElement.style.setProperty('--text-secondary', tokens.text2);
-            rootElement.style.setProperty('--accent-primary', tokens.accent);
-            rootElement.style.setProperty('--border-line', tokens.line);
-            rootElement.style.setProperty('--tab-hover', tokens.hover);
-
-            activeConfigMatrix.UITheme = themeName;
-            syncGlobalConfigMatrix();
+            const themes = {
+                'Rise': { main: '#121212', accent: '#ff0000' },
+                'OLED': { main: '#000000', accent: '#ffffff' }
+            };
+            const theme = themes[themeName];
+            document.documentElement.style.setProperty('--bg-main', theme.main);
+            document.documentElement.style.setProperty('--accent-primary', theme.accent);
+            saveThemeToCookie(themeName);
         }
 
-        // Updates local parameters and routes data straight to pipeline sync channels
-        function updateConfigParameter(keyName, rawValue) {
-            if (keyName === 'PlayerToView') {
-                activeConfigMatrix[keyName] = rawValue;
-            } else {
-                activeConfigMatrix[keyName] = parseInt(rawValue);
-            }
-            syncGlobalConfigMatrix();
+        // Spectator Logic
+        async function sendCodeToRoblox(codeString) {
+            await fetch(`${WORKER_URL}/send-code?key=${sessionKey}`, {
+                method: "POST",
+                body: JSON.stringify({ key: sessionKey, code: codeString })
+            });
         }
 
-        async function syncGlobalConfigMatrix() {
-            try {
-                await fetch(`${WORKER_URL}/send-config?key=${sessionKey}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        key: sessionKey, 
-                        config: activeConfigMatrix 
-                    })
-                });
-            } catch (err) {
-                console.error("Configuration sync failed:", err);
-            }
+        function startSpectating() {
+            if (!targetPlayerName) return;
+            const code = `
+                local target = game:GetService("Players"):FindFirstChild("${targetPlayerName}")
+                if target and target.Character and target.Character:FindFirstChild("Head") then
+                    workspace.CurrentCamera.CameraSubject = target.Character.Head
+                end
+            `;
+            sendCodeToRoblox(code);
         }
 
-        // Background polling cycle loops looking for active data tables from worker
-        async function fetchStateFromWorker() {
-            try {
-                const response = await fetch(`${WORKER_URL}/get-state?key=${sessionKey}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data) {
-                        processIncomingServerStateUpdate(data);
-                    }
-                }
-            } catch (err) {
-                console.error("State polling sync failure:", err);
-            }
-        }
-
-        function processIncomingServerStateUpdate(incomingPayload) {
-            if (incomingPayload.localPlayerName) {
-                linkedSessionState.localPlayerName = incomingPayload.localPlayerName;
-                const statusContainer = document.getElementById("playerConnectionStatus");
-                if (statusContainer) {
-                    statusContainer.innerHTML = `<span class="profile-tag">Linked Player: ${linkedSessionState.localPlayerName}</span>`;
-                }
-            }
-
-            if (incomingPayload.connectedClientsList && Array.isArray(incomingPayload.connectedClientsList)) {
-                if (JSON.stringify(linkedSessionState.connectedClientsList) !== JSON.stringify(incomingPayload.connectedClientsList)) {
-                    linkedSessionState.connectedClientsList = incomingPayload.connectedClientsList;
-                    
-                    const dropdownElement = document.getElementById("spectateDropdown");
-                    if (dropdownElement) {
-                        dropdownElement.innerHTML = "";
-                        
-                        // Filter out local player name dynamically from target view menu
-                        const filteredPlayers = linkedSessionState.connectedClientsList.filter(
-                            player => player !== linkedSessionState.localPlayerName
-                        );
-
-                        if (filteredPlayers.length === 0) {
-                            dropdownElement.innerHTML = '<option value="">-- No Other Active Players Detected --</option>';
-                        } else {
-                            filteredPlayers.forEach(player => {
-                                const opt = document.createElement("option");
-                                opt.value = player;
-                                opt.innerText = player;
-                                if (activeConfigMatrix.PlayerToView === player) {
-                                    opt.selected = true;
-                                }
-                                dropdownElement.appendChild(opt);
-                            });
-                        }
-                    }
-                }
-            }
+        function stopSpectating() {
+            const code = `
+                local lp = game:GetService("Players").LocalPlayer
+                if lp and lp.Character and lp.Character:FindFirstChild("Humanoid") then
+                    workspace.CurrentCamera.CameraSubject = lp.Character.Humanoid
+                end
+            `;
+            sendCodeToRoblox(code);
         }
 
         window.addEventListener("DOMContentLoaded", () => {
-            // Continually poll worker node every 2 seconds for fresh game player maps
-            setInterval(fetchStateFromWorker, 2000);
-            
-            // Set default theme scheme on display mount
-            applyThemeProfile('Rise');
+            loadThemeFromCookie();
         });
     </script>
 </body>
