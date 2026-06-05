@@ -771,7 +771,7 @@ function generateSessionKey() {
         }
 
         async function sendLuaCode(luaString) {
-    const sessionKey = getCookie("luma_session_key");
+    const sessionKey = localStorage.getItem("luma_session_key");
     try {
         const response = await fetch(`${WORKER_URL}/send-code`, {
             method: "POST",
