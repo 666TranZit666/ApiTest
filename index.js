@@ -32,13 +32,14 @@ const defaultConfigurationMatrix = {
     UITheme: 'Rise'
 };
 
-// Main Network Pipeline Event Receiver
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
         const method = request.method;
 
-        // Setup standard open cross-origin safety header tokens
+        // Sanitize trailing slashes to guarantee robust matching properties
+        const sanitizedPath = url.pathname.replace(/\/$/, "");
+
         const corsHeaders = {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -46,15 +47,12 @@ export default {
             "Content-Type": "application/json"
         };
 
-        // Handle preflight safety handshake requests smoothly
         if (method === "OPTIONS") {
             return new Response(null, { headers: corsHeaders });
         }
 
-        // Parse incoming key tokens from URL query lines (?key=LUMA-...)
         const sessionKey = url.searchParams.get("key");
 
-        // Helper to initialize missing session tracking layers dynamically
         const enforceSessionMemory = (key) => {
             if (!globalStateStorage[key]) {
                 globalStateStorage[key] = {
@@ -66,10 +64,8 @@ export default {
             }
         };
 
-        // --------------------------------------------------------
-        // 1. ROUTE: /update-state (POST) - Called by Roblox Lua Script
-        // --------------------------------------------------------
-        if (url.pathname === "/update-state" && method === "POST") {
+        // 1. ROUTE: /update-state (POST)
+        if (sanitizedPath === "/update-state" && method === "POST") {
             try {
                 const incomingPayload = await request.json();
                 const clientKey = incomingPayload.key;
@@ -79,8 +75,6 @@ export default {
                 }
 
                 enforceSessionMemory(clientKey);
-
-                // Cache structural active state registers
                 globalStateStorage[clientKey].localPlayerName = incomingPayload.localPlayerName || "";
                 globalStateStorage[clientKey].connectedClientsList = incomingPayload.connectedClientsList || [];
 
@@ -90,10 +84,8 @@ export default {
             }
         }
 
-        // --------------------------------------------------------
-        // 2. ROUTE: /get-state (GET) - Called by Webpage Polling
-        // --------------------------------------------------------
-        if (url.pathname === "/get-state" && method === "GET") {
+        // 2. ROUTE: /get-state (GET)
+        if (sanitizedPath === "/get-state" && method === "GET") {
             if (!sessionKey) {
                 return new Response(JSON.stringify({ error: "Required identifier parameter empty." }), { status: 400, headers: corsHeaders });
             }
@@ -109,10 +101,8 @@ export default {
             }), { status: 200, headers: corsHeaders });
         }
 
-        // --------------------------------------------------------
-        // 3. ROUTE: /get-config (GET) - Polled by Roblox Lua Script
-        // --------------------------------------------------------
-        if (url.pathname === "/get-config" && method === "GET") {
+        // 3. ROUTE: /get-config (GET)
+        if (sanitizedPath === "/get-config" && method === "GET") {
             if (!sessionKey) {
                 return new Response("Missing tracking access parameters.", { status: 400, headers: corsHeaders });
             }
@@ -121,10 +111,8 @@ export default {
             return new Response(JSON.stringify(globalStateStorage[sessionKey].config), { status: 200, headers: corsHeaders });
         }
 
-        // --------------------------------------------------------
-        // 4. ROUTE: /send-config (POST) - Called by Webpage Config Updates
-        // --------------------------------------------------------
-        if (url.pathname === "/send-config" && method === "POST") {
+        // 4. ROUTE: /send-config (POST)
+        if (sanitizedPath === "/send-config" && method === "POST") {
             try {
                 const incomingPayload = await request.json();
                 const clientKey = incomingPayload.key;
@@ -134,8 +122,6 @@ export default {
                 }
 
                 enforceSessionMemory(clientKey);
-
-                // Merge configuration adjustments cleanly
                 globalStateStorage[clientKey].config = { ...globalStateStorage[clientKey].config, ...incomingPayload.config };
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
             } catch (err) {
@@ -143,29 +129,21 @@ export default {
             }
         }
 
-        // --------------------------------------------------------
-        // 5. ROUTE: /get-code (GET) - Polled by Roblox Lua Script
-        // --------------------------------------------------------
-        if (url.pathname === "/get-code" && method === "GET") {
+        // 5. ROUTE: /get-code (GET)
+        if (sanitizedPath === "/get-code" && method === "GET") {
             if (!sessionKey) {
                 return new Response("Missing tracking access parameters.", { status: 400, headers: corsHeaders });
             }
 
             enforceSessionMemory(sessionKey);
-            
-            // Extract the pending payload script string
             const payload = globalStateStorage[sessionKey].codePayload || "";
-            
-            // Self-clearing mechanism so it doesn't loop execute the same payload string continuously
             globalStateStorage[sessionKey].codePayload = ""; 
 
             return new Response(payload, { status: 200, headers: { ...corsHeaders, "Content-Type": "text/plain" } });
         }
 
-        // --------------------------------------------------------
-        // 6. ROUTE: /send-code (POST) - Called by Webpage Code Sender
-        // --------------------------------------------------------
-        if (url.pathname === "/send-code" && method === "POST") {
+        // 6. ROUTE: /send-code (POST)
+        if (sanitizedPath === "/send-code" && method === "POST") {
             try {
                 const incomingPayload = await request.json();
                 const clientKey = incomingPayload.key;
@@ -175,8 +153,6 @@ export default {
                 }
 
                 enforceSessionMemory(clientKey);
-
-                // Cache raw execution plain text instructions into queue registers
                 globalStateStorage[clientKey].codePayload = incomingPayload.code;
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
             } catch (err) {
@@ -184,7 +160,12 @@ export default {
             }
         }
 
-        // Catch-all response for unmatched paths
-        return new Response(JSON.stringify({ error: "Target infrastructure endpoint routing mapping absent." }), { status: 404, headers: corsHeaders });
+        // Diagnostic Fallback response if paths continue to mismatch on execution calls
+        return new Response(JSON.stringify({ 
+            error: "Target infrastructure endpoint routing mapping absent.",
+            receivedPath: url.pathname,
+            sanitizedPath: sanitizedPath,
+            receivedMethod: method
+        }), { status: 404, headers: corsHeaders });
     }
 };
