@@ -336,7 +336,6 @@
     </div>
 
     <script>
-        // Core view panel swapper
         function switchTab(event, panelId) {
             const panels = document.querySelectorAll('.tab-panel');
             panels.forEach(panel => panel.classList.remove('active'));
@@ -348,42 +347,37 @@
             event.currentTarget.classList.add('active');
         }
 
-        // --- KEY SYSTEM STORAGE CONTROLLER ---
         function generateAndSaveKey() {
             const chars = '0123456789ABCDEF';
             let generatedKey = 'LUMA-';
             for (let i = 0; i < 24; i++) {
                 generatedKey += chars[Math.floor(Math.random() * 16)];
             }
-            
             localStorage.setItem("luma_auth_key", generatedKey);
             document.getElementById("keyDisplay").innerText = generatedKey;
         }
 
-        // --- WALKSPEED PANEL SLIDER ---
+        // --- FIXED DATA PIPELINE FUNCTION ---
         function handleWalkspeedUpdate(val) {
-            // Update UI text badge immediately
             document.getElementById("walkspeedValue").innerText = val;
-            
-            // Fetch stored key string
             const activeKey = localStorage.getItem("luma_auth_key") || "DEFAULT_KEY";
 
-            // Push just the raw value under WalkSpeedValue parameter
+            // Fixed endpoint structure hitting the correct routing path
             fetch('https://cazed.wtf/api/update-config', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
                     key: activeKey,
-                    WalkSpeedValue: parseInt(val)
+                    value: parseInt(val)
                 })
             })
-            .catch(err => console.error("Error sending value to backend:", err));
+            .catch(err => console.error("Pipeline Transmission Error:", err));
         }
 
-        // --- THEME ENGINE SELECTION MAPPING ---
         function applyThemeColors(themeName) {
             const root = document.documentElement;
-
             if (themeName === "Rise") {
                 root.style.setProperty('--bg-main', '#121212');
                 root.style.setProperty('--bg-sidebar', '#242424');
@@ -509,7 +503,6 @@
             localStorage.setItem("userAppTheme", themeName);
         }
 
-        // Initial setup on layout load
         window.addEventListener("DOMContentLoaded", () => {
             const savedTheme = localStorage.getItem("userAppTheme");
             applyThemeColors(savedTheme ? savedTheme : "Rise");
