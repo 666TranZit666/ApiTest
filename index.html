@@ -117,7 +117,7 @@
             opacity: 0.8;
         }
 
-        /* Generic Framework Layout Card styling */
+        /* Framework Layout Card styling */
         .control-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-line);
@@ -360,30 +360,24 @@
             document.getElementById("keyDisplay").innerText = generatedKey;
         }
 
-        // --- WALKSPEED PANEL SLIDER WITH FULL STRUCT DATA ---
+        // --- WALKSPEED PANEL SLIDER ---
         function handleWalkspeedUpdate(val) {
+            // Update UI text badge immediately
             document.getElementById("walkspeedValue").innerText = val;
             
-            const slider = document.getElementById("walkspeedSlider");
+            // Fetch stored key string
             const activeKey = localStorage.getItem("luma_auth_key") || "DEFAULT_KEY";
 
-            // Pipes current configuration along with Min and Max bounds directly to your backend
+            // Push just the raw value under WalkSpeedValue parameter
             fetch('https://cazed.wtf/api/update-config', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     key: activeKey,
-                    WalkSpeed: {
-                        Current: parseInt(val),
-                        Min: parseInt(slider.min),
-                        Max: parseInt(slider.max)
-                    }
+                    WalkSpeedValue: parseInt(val)
                 })
             })
-            .then(res => res.json())
-            .catch(err => console.error("Error updating walkspeed metrics pipeline:", err));
+            .catch(err => console.error("Error sending value to backend:", err));
         }
 
         // --- THEME ENGINE SELECTION MAPPING ---
@@ -515,7 +509,7 @@
             localStorage.setItem("userAppTheme", themeName);
         }
 
-        // Environment initialization hook running instantly on load
+        // Initial setup on layout load
         window.addEventListener("DOMContentLoaded", () => {
             const savedTheme = localStorage.getItem("userAppTheme");
             applyThemeColors(savedTheme ? savedTheme : "Rise");
