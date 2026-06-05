@@ -279,8 +279,8 @@
                 </div>
                 <div class="slider-wrapper">
                     <input type="range" min="16" max="150" value="16" class="custom-slider" id="walkspeedSlider" 
-                           oninput="updateSliderText(this.value)" 
-                           onchange="handleWalkspeedTransmission(this.value)">
+                           oninput="updateSliderVisual(this.value)" 
+                           onchange="postSliderText(this.value)">
                 </div>
             </div>
         </div>
@@ -359,29 +359,29 @@
             document.getElementById("keyDisplay").innerText = generatedKey;
         }
 
-        // Just changes the text layout number instantly while dragging
-        function updateSliderText(val) {
+        // Updates screen label value smoothly as you drag the slider
+        function updateSliderVisual(val) {
             document.getElementById("walkspeedValue").innerText = val;
         }
 
-        // --- TRANSMISSION PIPELINE: Formats and sends raw text string ---
-        function handleWalkspeedTransmission(val) {
+        // --- DIRECT TRANSMISSION CONTEXT ENGINE ---
+        function postSliderText(val) {
             const activeKey = localStorage.getItem("luma_auth_key") || "DEFAULT_KEY";
             
-            // Converts the number into the exact plain-text code layout string you want
-            const luaString = "Config.Test = " + parseInt(val);
+            // Format number directly into raw text layout syntax string
+            const rawTextString = "Config.Test = " + parseInt(val);
 
-            fetch('https://cazed.wtf/api/update-config', {
+            // POST to the explicit handling address with verification parameter
+            fetch('https://robloxapi.6dds26hhmm.workers.dev/get-code?key=' + encodeURIComponent(activeKey), {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    key: activeKey,
-                    value: luaString // This passes the text payload "Config.Test = X"
+                    textData: rawTextString
                 })
             })
-            .catch(err => console.error("Pipeline Transmission Error:", err));
+            .catch(err => console.error("Transmission Pipeline Timeout/Error:", err));
         }
 
         function applyThemeColors(themeName) {
@@ -414,112 +414,4 @@
                 root.style.setProperty('--border-line', '#ff3c50');
                 root.style.setProperty('--tab-hover', '#2d1e1e');
             } else if (themeName === "Cyberpunk") {
-                root.style.setProperty('--bg-main', '#0a0a14');
-                root.style.setProperty('--bg-sidebar', '#141428');
-                root.style.setProperty('--bg-card', '#141423');
-                root.style.setProperty('--text-primary', '#00ffff');
-                root.style.setProperty('--text-secondary', '#c8c8ff');
-                root.style.setProperty('--accent-primary', '#ff00ff');
-                root.style.setProperty('--border-line', '#ff00ff');
-                root.style.setProperty('--tab-hover', '#141e32');
-            } else if (themeName === "TokyoNight") {
-                root.style.setProperty('--bg-main', '#1a1b26');
-                root.style.setProperty('--bg-sidebar', '#242532');
-                root.style.setProperty('--bg-card', '#2b2d3f');
-                root.style.setProperty('--text-primary', '#a9b1d6');
-                root.style.setProperty('--text-secondary', '#c0cad6');
-                root.style.setProperty('--accent-primary', '#7aa2f7');
-                root.style.setProperty('--border-line', '#565f89');
-                root.style.setProperty('--tab-hover', '#35374d');
-            } else if (themeName === "OLED") {
-                root.style.setProperty('--bg-main', '#000000');
-                root.style.setProperty('--bg-sidebar', '#0a0a0a');
-                root.style.setProperty('--bg-card', '#0c0c0c');
-                root.style.setProperty('--text-primary', '#ffffff');
-                root.style.setProperty('--text-secondary', '#b4b4b4');
-                root.style.setProperty('--accent-primary', '#00ff00');
-                root.style.setProperty('--border-line', '#505050');
-                root.style.setProperty('--tab-hover', '#191919');
-            } else if (themeName === "BloodRed") {
-                root.style.setProperty('--bg-main', '#0f0808');
-                root.style.setProperty('--bg-sidebar', '#1e1212');
-                root.style.setProperty('--bg-card', '#190f0f');
-                root.style.setProperty('--text-primary', '#ff5050');
-                root.style.setProperty('--text-secondary', '#dcbcb4');
-                root.style.setProperty('--accent-primary', '#dc143c');
-                root.style.setProperty('--border-line', '#b40000');
-                root.style.setProperty('--tab-hover', '#321414');
-            } else if (themeName === "White") {
-                root.style.setProperty('--bg-main', '#ffffff');
-                root.style.setProperty('--bg-sidebar', '#ebebf0');
-                root.style.setProperty('--bg-card', '#fafaff');
-                root.style.setProperty('--text-primary', '#32323c');
-                root.style.setProperty('--text-secondary', '#50505a');
-                root.style.setProperty('--accent-primary', '#007aff');
-                root.style.setProperty('--border-line', '#c8c8c8');
-                root.style.setProperty('--tab-hover', '#e6ebf0');
-            } else if (themeName === "Ubuntu") {
-                root.style.setProperty('--bg-main', '#300a24');
-                root.style.setProperty('--bg-sidebar', '#401230');
-                root.style.setProperty('--bg-card', '#401230');
-                root.style.setProperty('--text-primary', '#ffffff');
-                root.style.setProperty('--text-secondary', '#c8b4be');
-                root.style.setProperty('--accent-primary', '#e95420');
-                root.style.setProperty('--border-line', '#e95420');
-                root.style.setProperty('--tab-hover', '#461932');
-            } else if (themeName === "Glacier") {
-                root.style.setProperty('--bg-main', '#f0f8ff');
-                root.style.setProperty('--bg-sidebar', '#dcc8fa');
-                root.style.setProperty('--bg-card', '#f5fcff');
-                root.style.setProperty('--text-primary', '#19374b');
-                root.style.setProperty('--text-secondary', '#466e82');
-                root.style.setProperty('--accent-primary', '#00bfff');
-                root.style.setProperty('--border-line', '#add8e6');
-                root.style.setProperty('--tab-hover', '#d2e6f5');
-            } else if (themeName === "Midnight") {
-                root.style.setProperty('--bg-main', '#0a0a19');
-                root.style.setProperty('--bg-sidebar', '#14142d');
-                root.style.setProperty('--bg-card', '#141428');
-                root.style.setProperty('--text-primary', '#b4c8ff');
-                root.style.setProperty('--text-secondary', '#9696c8');
-                root.style.setProperty('--accent-primary', '#7b0082');
-                root.style.setProperty('--border-line', '#6432b4');
-                root.style.setProperty('--tab-hover', '#23233c');
-            } else if (themeName === "Anime") {
-                root.style.setProperty('--bg-main', '#fff0f5');
-                root.style.setProperty('--bg-sidebar', '#ffdce6');
-                root.style.setProperty('--bg-card', '#fff5fa');
-                root.style.setProperty('--text-primary', '#8b4565');
-                root.style.setProperty('--text-secondary', '#b48296');
-                root.style.setProperty('--accent-primary', '#ff69b4');
-                root.style.setProperty('--border-line', '#ff69b4');
-                root.style.setProperty('--tab-hover', '#ffe6f0');
-            } else if (themeName === "Femboy") {
-                root.style.setProperty('--bg-main', '#fff5fa');
-                root.style.setProperty('--bg-sidebar', '#ffebd2');
-                root.style.setProperty('--bg-card', '#fffafc');
-                root.style.setProperty('--text-primary', '#db7093');
-                root.style.setProperty('--text-secondary', '#b4788c');
-                root.style.setProperty('--accent-primary', '#ff1493');
-                root.style.setProperty('--border-line', '#ffb6c1');
-                root.style.setProperty('--tab-hover', '#ffebf5');
-            }
-        }
-
-        function selectAndSaveTheme(themeName) {
-            applyThemeColors(themeName);
-            localStorage.setItem("userAppTheme", themeName);
-        }
-
-        window.addEventListener("DOMContentLoaded", () => {
-            const savedTheme = localStorage.getItem("userAppTheme");
-            applyThemeColors(savedTheme ? savedTheme : "Rise");
-
-            const savedKey = localStorage.getItem("luma_auth_key");
-            if (savedKey) {
-                document.getElementById("keyDisplay").innerText = savedKey;
-            }
-        });
-    </script>
-</body>
-</html>
+                root.style.setProperty('--bg-main', '#0a0
