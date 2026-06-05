@@ -3,220 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Command Hub</title>
-    <!-- Bootstrap 5 CSS for styling and tabs -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Load Ace Editor from CDN for high-quality code editing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js" type="text/javascript" charset="utf-8"></script>
+    <title>Luma Dashboard</title>
     <style>
-        body { background-color: #0f0f12; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
-        .hub-card { background-color: #181820; border: 1px solid #2d2d3d; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        .nav-tabs { border-bottom: 1px solid #2d2d3d; }
-        .nav-link { color: #94a3b8; border: none !important; margin-right: 4px; border-radius: 6px 6px 0 0 !important; }
-        .nav-link:hover { color: #f8fafc; background-color: #22222e; }
-        .nav-link.active { color: #3b82f6 !important; background-color: #1c1c27 !important; border-bottom: 2px solid #3b82f6 !important; }
-        /* Ace Editor sizing container */
-        #editor-container { width: 100%; height: 350px; border: 1px solid #3f3f56; border-radius: 6px; }
-        .key-badge { background-color: #1e293b; border: 1px solid #3b82f6; color: #60a5fa; font-family: monospace; font-weight: bold; }
-        .quick-btn { background-color: #222230; border: 1px solid #3f3f56; color: #cbd5e1; transition: all 0.2s ease; }
-        .quick-btn:hover { background-color: #3b82f6; border-color: #3b82f6; color: white; transform: translateY(-1px); }
+        :root {
+            --bg-main: #fff0f3;
+            --bg-sidebar: #ffeaef;
+            --bg-card: #ffffff;
+            --text-primary: #d63384;
+            --text-secondary: #c95276;
+            --accent-pink: #ff85a2;
+            --border-pink: #ffe3e8;
+            --tab-hover: #ffd1dc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation Layout */
+        .sidebar {
+            width: 240px;
+            background-color: var(--bg-sidebar);
+            border-right: 2px solid var(--border-pink);
+            display: flex;
+            flex-direction: column;
+            padding: 25px 15px;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        .sidebar-brand {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: var(--accent-pink);
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+
+        /* Navigation Tab Buttons */
+        .tab-button {
+            background-color: var(--bg-card);
+            border: none;
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(214, 51, 132, 0.04);
+        }
+
+        .tab-button:hover {
+            background-color: var(--tab-hover);
+            transform: translateX(2px);
+        }
+
+        /* Active Left Indicator Line */
+        .tab-button.active {
+            background-color: #ffe3e8;
+            font-weight: bold;
+        }
+
+        .tab-button.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 25%;
+            height: 50%;
+            width: 5px;
+            background-color: var(--text-primary);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Main Window View Area */
+        .main-window {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        /* Dynamic Panel Switching classes */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .panel-title {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .panel-subtitle {
+            color: #a07e88;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
-    <script>
-        // ========================================================
-        // CONFIGURATION: PASTE YOUR STANDALONE WORKER URL HERE
-        // ========================================================
-        const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev"; 
 
-        // Generate a persistent session key on page load
-        const sessionKey = "RBX-" + Math.floor(100000 + Math.random() * 900000);
-        let editor; // Global variable for Ace Editor
-
-        // Core network function to send payload to Cloudflare KV
-        async function transmitPayload(codePayload) {
-            const statusDiv = document.getElementById("statusMessage");
-            statusDiv.className = "alert alert-warning mt-3 py-2 text-center";
-            statusDiv.innerText = "Transmitting package to edge network...";
-            statusDiv.classList.remove("d-none");
-
-            try {
-                const response = await fetch(`${WORKER_URL}/send-code`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: sessionKey, code: codePayload })
-                });
-
-                if (response.ok) {
-                    statusDiv.className = "alert alert-success mt-3 py-2 text-center";
-                    statusDiv.innerText = "Success! Payload queued for client retrieval.";
-                } else {
-                    const errText = await response.text();
-                    statusDiv.className = "alert alert-danger mt-3 py-2 text-center";
-                    statusDiv.innerText = `Server Rejected: ${errText}`;
-                }
-            } catch (error) {
-                statusDiv.className = "alert alert-danger mt-3 py-2 text-center";
-                statusDiv.innerText = "Network Error: Unable to contact backend worker.";
-            }
-        }
-
-        // Wrapper function for custom console compiler box
-        function executeCustomInput() {
-            const codeInput = editor.getValue();
-            if (!codeInput.trim()) {
-                alert("Please enter some code before executing!");
-                return;
-            }
-            transmitPayload(codeInput);
-        }
-
-        // Wrapper function for quick preset buttons
-        function executePreset(presetCommand) {
-            transmitPayload(presetCommand);
-        }
-
-        function copyKey() {
-            navigator.clipboard.writeText(sessionKey);
-            alert("Session key copied! Paste this into your client configuration variable.");
-        }
-
-        // Initialize Ace Editor window after DOM components load
-// Initialize Ace Editor window after DOM components load
-window.onload = () => {
-    document.getElementById("displayKey").innerText = sessionKey;
-    
-    // 1. Tell Ace to load the language tools extension module
-    ace.require("ace/ext/language_tools");
-    
-    editor = ace.edit("editor-container");
-    editor.setTheme("ace/theme/tomorrow_night_eighties");
-    editor.session.setMode("ace/mode/lua");
-    editor.setShowPrintMargin(false);
-    editor.setOption("cursorStyle", "smooth");
-    editor.setFontSize("14px");
-    
-    // 2. ENABLE LIVE AUTOCOMPLETE OPTIONS HERE
-    editor.setOptions({
-        enableBasicAutocompletion: true,
-        enableLiveAutocompletion: true,
-        enableSnippets: true
-    });
-
-    editor.setValue("-- Enter custom code here...\nprint('Hello from interface console!')\n");
-    editor.clearSelection();
-};
-
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-9">
-                
-                <!-- Top Header Bar -->
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <div>
-                        <h1 class="fw-bold text-white m-0">Command Hub</h1>
-                        <p class="text-muted small m-0">Multi-tab environment interface connected to Cloudflare Edge</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="text-secondary small">Session ID:</span>
-                        <span id="displayKey" class="badge key-badge px-3 py-2 fs-6">RBX-000000</span>
-                        <button class="btn btn-sm btn-outline-secondary py-1" onclick="copyKey()">Copy</button>
-                    </div>
-                </div>
-
-                <!-- Interface Container Structure -->
-                <div class="hub-card p-4">
-                    
-                    <!-- Bootstrap Tab Selection Controls -->
-                    <ul class="nav nav-tabs mb-4" id="interfaceTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="console-tab" data-bs-toggle="tab" data-bs-target="#console-panel" type="button" role="tab">Main Console</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="presets-tab" data-bs-toggle="tab" data-bs-target="#presets-panel" type="button" role="tab">Quick Utilities</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="environment-tab" data-bs-toggle="tab" data-bs-target="#environment-panel" type="button" role="tab">Visual Settings</button>
-                        </li>
-                    </ul>
-
-                    <!-- Tab Panel Views Content -->
-                    <div class="tab-content" id="interfaceTabsContent">
-                        
-                        <!-- TAB 1: ADVANCED CODE COMPILER BOX -->
-                        <div class="tab-pane fade show active" id="console-panel" role="tabpanel">
-                            <div class="mb-3 d-flex justify-content-between text-muted small">
-                                <span>Luau Translation Mode Active</span>
-                                <span>Ace Framework Engine</span>
-                            </div>
-                            <div id="editor-container"></div>
-                            <div class="mt-4 d-grid">
-                                <button class="btn btn-primary btn-lg fw-semibold" onclick="executeCustomInput()">Execute Custom Code</button>
-                            </div>
-                        </div>
-
-                        <!-- TAB 2: PRE-MADE SCRIPT BUTTONS PACKAGED TOGETHER -->
-                        <div class="tab-pane fade" id="presets-panel" role="tabpanel">
-                            <h5 class="text-white mb-3">Quick Execution Presets</h5>
-                            <p class="text-muted small">Click any item below to pass pre-built payload strings instantly to the database queue.</p>
-                            
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('print(\'Diagnostic Handshake Successful\')')">
-                                        <span>Terminal Diagnostic</span>
-                                        <span class="badge bg-secondary font-monospace">print()</span>
-                                    </button>
-                                </div>
-                                <div class="col-md-6">
-                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('if workspace:FindFirstChild(\'Baseplate\') then workspace.Baseplate.Color = Color3.fromRGB(math.random(0,255), math.random(0,255), math.random(0,255)) end')">
-                                        <span>Randomize Baseplate Color</span>
-                                        <span class="badge bg-secondary font-monospace">Workspace</span>
-                                    </button>
-                                </div>
-                                <div class="col-md-6">
-                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('local p = game.Players.LocalPlayer; if p and p.Character then p.Character:MoveTo(Vector3.new(0, 50, 0)) end')">
-                                        <span>Teleport to Map Origin</span>
-                                        <span class="badge bg-secondary font-monospace">Player</span>
-                                    </button>
-                                </div>
-                                <div class="col-md-6">
-                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('for _,v in ipairs(workspace:GetChildren()) do if v:IsA(\'BasePart\') and not v.Locked then v.Anchored = false end end')">
-                                        <span>Unanchor Surrounding Objects</span>
-                                        <span class="badge bg-secondary font-monospace">Physics</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB 3: VISUAL APPEARANCE CONFIGURATION -->
-                        <div class="tab-pane fade" id="environment-panel" role="tabpanel">
-                            <h5 class="text-white mb-3">Interface Theme Engine</h5>
-                            <p class="text-muted small">Adjust the visual color coding style of the main console compiler window.</p>
-                            
-                            <div class="row g-3 max-width-md">
-                                <div class="col-sm-6">
-                                    <label class="form-label text-secondary small">Editor Theme Selection</label>
-                                    <select class="form-select bg-dark text-white border-secondary" onchange="editor.setTheme('ace/theme/' + this.value)">
-                                        <option value="tomorrow_night_eighties">Tomorrow Night Eighties (Default)</option>
-                                        <option value="monokai">Monokai Dark</option>
-                                        <option value="twilight">Twilight Mode</option>
-                                        <option value="solarized_dark">Solarized Dark Space</option>
-                                        <option value="chrome">Classic Light Mode</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Global Execution Network Status Logs -->
-                    <div id="statusMessage" class="alert alert-info mt-3 py-2 text-center d-none">System Operational</div>
-
-                </div>
-            </div>
-        </div>
+    <div class="sidebar">
+        <div class="sidebar-brand">Luma</div>
+        <button class="tab-button active" onclick="switchTab(event, 'player-panel')">Player</button>
+        <button class="tab-button" onclick="switchTab(event, 'base-panel')">Base</button>
+        <button class="tab-button" onclick="switchTab(event, 'slot-panel')">Slot</button>
+        <button class="tab-button" onclick="switchTab(event, 'autobuild-panel')">Auto Build</button>
+        <button class="tab-button" onclick="switchTab(event, 'dupe-panel')">Dupe</button>
+        <button class="tab-button" onclick="switchTab(event, 'shop-panel')">Shop</button>
+        <button class="tab-button" onclick="switchTab(event, 'tree-panel')">Tree</button>
+        <button class="tab-button" onclick="switchTab(event, 'settings-panel')">Settings</button>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle with Popper for handling tab switches -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="main-window">
+        
+        <div id="player-panel" class="tab-panel active">
+            <h1 class="panel-title">Player Settings</h1>
+            <div class="panel-subtitle">Modify Local Player Settings</div>
+            </div>
+
+        <div id="base-panel" class="tab-panel">
+            <h1 class="panel-title">Base Options</h1>
+            <div class="panel-subtitle">Manage base configurations</div>
+        </div>
+
+        <div id="slot-panel" class="tab-panel">
+            <h1 class="panel-title">Slot Configuration</h1>
+            <div class="panel-subtitle">Adjust slot specific items</div>
+        </div>
+
+        <div id="autobuild-panel" class="tab-panel">
+            <h1 class="panel-title">Auto Build Settings</h1>
+            <div class="panel-subtitle">Automation rules and triggers</div>
+        </div>
+
+        <div id="dupe-panel" class="tab-panel">
+            <h1 class="panel-title">Dupe Utilities</h1>
+            <div class="panel-subtitle">Manage inventory utilities</div>
+        </div>
+
+        <div id="shop-panel" class="tab-panel">
+            <h1 class="panel-title">Shop Panel</h1>
+            <div class="panel-subtitle">Interface shopping utilities</div>
+        </div>
+
+        <div id="tree-panel" class="tab-panel">
+            <h1 class="panel-title">Tree Management</h1>
+            <div class="panel-subtitle">Environment configurations</div>
+        </div>
+
+        <div id="settings-panel" class="tab-panel">
+            <h1 class="panel-title">System Settings</h1>
+            <div class="panel-subtitle">Global adjustments and session configurations</div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchTab(event, panelId) {
+            // Hide all tab panels
+            const panels = document.querySelectorAll('.tab-panel');
+            panels.forEach(panel => panel.classList.remove('active'));
+
+            // Remove active appearance from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // Show current panel and add active styling to the clicked button
+            document.getElementById(panelId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
 </body>
 </html>
