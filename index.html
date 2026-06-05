@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cazed Cloud Executor</title>
+    <title>Cloud Command Hub</title>
+    <!-- Bootstrap 5 CSS for styling and tabs -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Load Ace Editor from CDN for high-quality code editing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
-        body { background-color: #0f0f12; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        .editor-card { background-color: #181820; border: 1px solid #2d2d3d; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        .code-box { background-color: #0b0b0f; border: 1px solid #3f3f56; color: #a7f3d0; font-family: 'Fira Code', 'Courier New', monospace; font-size: 14px; resize: none; }
-        .code-box:focus { background-color: #0b0b0f; border-color: #3b82f6; color: #a7f3d0; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
-        .key-badge { background-color: #1e293b; border: 1px solid #3b82f6; color: #60a5fa; font-weight: bold; font-family: monospace; }
+        body { background-color: #0f0f12; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
+        .hub-card { background-color: #181820; border: 1px solid #2d2d3d; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .nav-tabs { border-bottom: 1px solid #2d2d3d; }
+        .nav-link { color: #94a3b8; border: none !important; margin-right: 4px; border-radius: 6px 6px 0 0 !important; }
+        .nav-link:hover { color: #f8fafc; background-color: #22222e; }
+        .nav-link.active { color: #3b82f6 !important; background-color: #1c1c27 !important; border-bottom: 2px solid #3b82f6 !important; }
+        /* Ace Editor sizing container */
+        #editor-container { width: 100%; height: 350px; border: 1px solid #3f3f56; border-radius: 6px; }
+        .key-badge { background-color: #1e293b; border: 1px solid #3b82f6; color: #60a5fa; font-family: monospace; font-weight: bold; }
+        .quick-btn { background-color: #222230; border: 1px solid #3f3f56; color: #cbd5e1; transition: all 0.2s ease; }
+        .quick-btn:hover { background-color: #3b82f6; border-color: #3b82f6; color: white; transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -22,81 +31,181 @@
 
         // Generate a persistent session key on page load
         const sessionKey = "RBX-" + Math.floor(100000 + Math.random() * 900000);
+        let editor; // Global variable for Ace Editor
 
-        async function executeScript() {
-            const codeInput = document.getElementById("luaCode").value;
+        // Core network function to send payload to Cloudflare KV
+        async function transmitPayload(codePayload) {
             const statusDiv = document.getElementById("statusMessage");
-
-            if (!codeInput.trim()) {
-                showStatus("Please enter some Luau code first!", "danger");
-                return;
-            }
-
-            showStatus("Sending package to Cloudflare Edge...", "warning");
+            statusDiv.className = "alert alert-warning mt-3 py-2 text-center";
+            statusDiv.innerText = "Transmitting package to edge network...";
+            statusDiv.classList.remove("d-none");
 
             try {
-                // Notice the clear path pointing directly to /send-code
                 const response = await fetch(`${WORKER_URL}/send-code`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: sessionKey, code: codeInput })
+                    body: JSON.stringify({ key: sessionKey, code: codePayload })
                 });
 
                 if (response.ok) {
-                    showStatus("Success! Packet queued for Roblox execution.", "success");
+                    statusDiv.className = "alert alert-success mt-3 py-2 text-center";
+                    statusDiv.innerText = "Success! Payload queued for client retrieval.";
                 } else {
                     const errText = await response.text();
-                    showStatus(`Server Rejected Package: ${errText}`, "danger");
+                    statusDiv.className = "alert alert-danger mt-3 py-2 text-center";
+                    statusDiv.innerText = `Server Rejected: ${errText}`;
                 }
             } catch (error) {
-                showStatus(`Network Error: Unabe to connect to backend worker.`, "danger");
+                statusDiv.className = "alert alert-danger mt-3 py-2 text-center";
+                statusDiv.innerText = "Network Error: Unable to contact backend worker.";
             }
         }
 
-        function showStatus(text, type) {
-            const statusDiv = document.getElementById("statusMessage");
-            statusDiv.className = `alert alert-${type} mt-3 py-2 text-center`;
-            statusDiv.innerText = text;
+        // Wrapper function for custom console compiler box
+        function executeCustomInput() {
+            const codeInput = editor.getValue();
+            if (!codeInput.trim()) {
+                alert("Please enter some code before executing!");
+                return;
+            }
+            transmitPayload(codeInput);
+        }
+
+        // Wrapper function for quick preset buttons
+        function executePreset(presetCommand) {
+            transmitPayload(presetCommand);
         }
 
         function copyKey() {
             navigator.clipboard.writeText(sessionKey);
-            alert("Session key copied to clipboard! Paste this into line 7 of your Roblox script.");
+            alert("Session key copied! Paste this into your client configuration variable.");
         }
 
+        // Initialize Ace Editor window after DOM components load
         window.onload = () => {
             document.getElementById("displayKey").innerText = sessionKey;
+            
+            editor = ace.edit("editor-container");
+            editor.setTheme("ace/theme/tomorrow_night_eighties");
+            editor.session.setMode("ace/mode/lua");
+            editor.setShowPrintMargin(false);
+            editor.setOption("cursorStyle", "smooth");
+            editor.setFontSize("14px");
+            editor.setValue("-- Enter custom code here...\nprint('Hello from interface console!')\n");
+            editor.clearSelection();
         };
     </script>
 
     <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="text-center mb-4">
-                    <h1 class="fw-bold text-white">Cazed Execution Hub</h1>
-                    <p class="text-muted">Send script binaries to your Roblox game client via Cloudflare Edge</p>
+            <div class="col-lg-9">
+                
+                <!-- Top Header Bar -->
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <div>
+                        <h1 class="fw-bold text-white m-0">Command Hub</h1>
+                        <p class="text-muted small m-0">Multi-tab environment interface connected to Cloudflare Edge</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-secondary small">Session ID:</span>
+                        <span id="displayKey" class="badge key-badge px-3 py-2 fs-6">RBX-000000</span>
+                        <button class="btn btn-sm btn-outline-secondary py-1" onclick="copyKey()">Copy</button>
+                    </div>
                 </div>
 
-                <div class="editor-card p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-secondary small">Your Game Key:</span>
-                            <span id="displayKey" class="badge key-badge px-3 py-2 fs-6">RBX-000000</span>
-                            <button class="btn btn-sm btn-outline-secondary py-1" onclick="copyKey()">Copy</button>
+                <!-- Interface Container Structure -->
+                <div class="hub-card p-4">
+                    
+                    <!-- Bootstrap Tab Selection Controls -->
+                    <ul class="nav nav-tabs mb-4" id="interfaceTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="console-tab" data-bs-toggle="tab" data-bs-target="#console-panel" type="button" role="tab">Main Console</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="presets-tab" data-bs-toggle="tab" data-bs-target="#presets-panel" type="button" role="tab">Quick Utilities</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="environment-tab" data-bs-toggle="tab" data-bs-target="#environment-panel" type="button" role="tab">Visual Settings</button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Panel Views Content -->
+                    <div class="tab-content" id="interfaceTabsContent">
+                        
+                        <!-- TAB 1: ADVANCED CODE COMPILER BOX -->
+                        <div class="tab-pane fade show active" id="console-panel" role="tabpanel">
+                            <div class="mb-3 d-flex justify-content-between text-muted small">
+                                <span>Luau Translation Mode Active</span>
+                                <span>Ace Framework Engine</span>
+                            </div>
+                            <div id="editor-container"></div>
+                            <div class="mt-4 d-grid">
+                                <button class="btn btn-primary btn-lg fw-semibold" onclick="executeCustomInput()">Execute Custom Code</button>
+                            </div>
                         </div>
-                        <span class="badge bg-success py-2 px-3">Pipeline Stable</span>
+
+                        <!-- TAB 2: PRE-MADE SCRIPT BUTTONS PACKAGED TOGETHER -->
+                        <div class="tab-pane fade" id="presets-panel" role="tabpanel">
+                            <h5 class="text-white mb-3">Quick Execution Presets</h5>
+                            <p class="text-muted small">Click any item below to pass pre-built payload strings instantly to the database queue.</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('print(\'Diagnostic Handshake Successful\')')">
+                                        <span>Terminal Diagnostic</span>
+                                        <span class="badge bg-secondary font-monospace">print()</span>
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('if workspace:FindFirstChild(\'Baseplate\') then workspace.Baseplate.Color = Color3.fromRGB(math.random(0,255), math.random(0,255), math.random(0,255)) end')">
+                                        <span>Randomize Baseplate Color</span>
+                                        <span class="badge bg-secondary font-monospace">Workspace</span>
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('local p = game.Players.LocalPlayer; if p and p.Character then p.Character:MoveTo(Vector3.new(0, 50, 0)) end')">
+                                        <span>Teleport to Map Origin</span>
+                                        <span class="badge bg-secondary font-monospace">Player</span>
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn quick-btn w-100 p-3 text-start d-flex justify-content-between align-items-center" onclick="executePreset('for _,v in ipairs(workspace:GetChildren()) do if v:IsA(\'BasePart\') and not v.Locked then v.Anchored = false end end')">
+                                        <span>Unanchor Surrounding Objects</span>
+                                        <span class="badge bg-secondary font-monospace">Physics</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: VISUAL APPEARANCE CONFIGURATION -->
+                        <div class="tab-pane fade" id="environment-panel" role="tabpanel">
+                            <h5 class="text-white mb-3">Interface Theme Engine</h5>
+                            <p class="text-muted small">Adjust the visual color coding style of the main console compiler window.</p>
+                            
+                            <div class="row g-3 max-width-md">
+                                <div class="col-sm-6">
+                                    <label class="form-label text-secondary small">Editor Theme Selection</label>
+                                    <select class="form-select bg-dark text-white border-secondary" onchange="editor.setTheme('ace/theme/' + this.value)">
+                                        <option value="tomorrow_night_eighties">Tomorrow Night Eighties (Default)</option>
+                                        <option value="monokai">Monokai Dark</option>
+                                        <option value="twilight">Twilight Mode</option>
+                                        <option value="solarized_dark">Solarized Dark Space</option>
+                                        <option value="chrome">Classic Light Mode</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <textarea id="luaCode" class="form-control code-box p-3" rows="14" placeholder='-- Write your Roblox code here...&#10;print("Hello from www.cazed.wtf!")&#10;workspace.BasePlate.Color = Color3.fromRGB(0, 255, 120)'></textarea>
+                    <!-- Global Execution Network Status Logs -->
+                    <div id="statusMessage" class="alert alert-info mt-3 py-2 text-center d-none">System Operational</div>
 
-                    <div id="statusMessage" class="alert alert-info mt-3 py-2 text-center d-none">Ready</div>
-
-                    <div class="mt-4 d-grid">
-                        <button class="btn btn-primary btn-lg fw-semibold" onclick="executeScript()">Execute Script Live</button>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Bootstrap 5 JS Bundle with Popper for handling tab switches -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
