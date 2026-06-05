@@ -739,7 +739,6 @@
         }
 
         async function syncGlobalConfigMatrix() {
-            triggerNotification("warning", "Synchronizing parameters matrix...");
             try {
                 const response = await fetch(`${WORKER_URL}/send-config`, {
                     method: "POST",
@@ -749,13 +748,8 @@
                         config: activeConfigMatrix 
                     })
                 });
-                if (response.ok) {
-                    triggerNotification("success", "Success! Configurations synced smoothly.");
-                } else {
-                    triggerNotification("danger", "Server Rejected config payload initialization.");
-                }
             } catch (err) {
-                triggerNotification("danger", "Network Failure: Unable to complete endpoint data transmission.");
+                console.error("Failed configuration sync:", err);
             }
         }
 
@@ -767,7 +761,23 @@
             statusDiv.classList.remove("d-none");
         }
 
-        // Processing Pipeline Engine: Re-mapping layout outputs safely
+        // Real-Time Polling Engine: Pulls data matching your Roblox script updates
+        async function fetchStateFromWorker() {
+            if (!sessionKey) return;
+            try {
+                const response = await fetch(`${WORKER_URL}/get-state?key=${sessionKey}`);
+                if (response.ok && response.status !== 204) {
+                    const data = await response.json();
+                    if (data) {
+                        processIncomingServerStateUpdate(data);
+                    }
+                }
+            } catch (err) {
+                console.error("State polling sync failure:", err);
+            }
+        }
+
+        // Processing Pipeline Engine: Handles local identity and drops other entries into dropdown
         function processIncomingServerStateUpdate(incomingPayload) {
             if (incomingPayload.localPlayerName) {
                 if (linkedSessionState.localPlayerName !== incomingPayload.localPlayerName) {
@@ -782,32 +792,35 @@
             }
 
             if (incomingPayload.connectedClientsList && Array.isArray(incomingPayload.connectedClientsList)) {
-                linkedSessionState.connectedClientsList = incomingPayload.connectedClientsList;
-                
-                const dropdownElement = document.getElementById("spectateDropdown");
-                if (dropdownElement) {
-                    dropdownElement.innerHTML = "";
+                // Check if players list changed before rewriting components to protect rendering load
+                if (JSON.stringify(linkedSessionState.connectedClientsList) !== JSON.stringify(incomingPayload.connectedClientsList)) {
+                    linkedSessionState.connectedClientsList = incomingPayload.connectedClientsList;
                     
-                    // Filter out local target entity matches dynamically before generation rendering loops
-                    const filteredPlayers = linkedSessionState.connectedClientsList.filter(
-                        player => player !== linkedSessionState.localPlayerName
-                    );
+                    const dropdownElement = document.getElementById("spectateDropdown");
+                    if (dropdownElement) {
+                        dropdownElement.innerHTML = "";
+                        
+                        // Filters out your local identity dynamically
+                        const filteredPlayers = linkedSessionState.connectedClientsList.filter(
+                            player => player !== linkedSessionState.localPlayerName
+                        );
 
-                    if (filteredPlayers.length === 0) {
-                        const defaultOpt = document.createElement("option");
-                        defaultOpt.value = "";
-                        defaultOpt.innerText = "-- No Other Active Players Detected --";
-                        dropdownElement.appendChild(defaultOpt);
-                    } else {
-                        filteredPlayers.forEach(player => {
-                            const opt = document.createElement("option");
-                            opt.value = player;
-                            opt.innerText = player;
-                            if (activeConfigMatrix.PlayerToView === player) {
-                                opt.selected = true;
-                            }
-                            dropdownElement.appendChild(opt);
-                        });
+                        if (filteredPlayers.length === 0) {
+                            const defaultOpt = document.createElement("option");
+                            defaultOpt.value = "";
+                            defaultOpt.innerText = "-- No Other Active Players Detected --";
+                            dropdownElement.appendChild(defaultOpt);
+                        } else {
+                            filteredPlayers.forEach(player => {
+                                const opt = document.createElement("option");
+                                opt.value = player;
+                                opt.innerText = player;
+                                if (activeConfigMatrix.PlayerToView === player) {
+                                    opt.selected = true;
+                                }
+                                dropdownElement.appendChild(opt);
+                            });
+                        }
                     }
                 }
             }
@@ -851,6 +864,9 @@
                 const display = document.getElementById("keyDisplay");
                 if(display) display.innerText = savedKey;
             }
+
+            // Fire up active pooling loops every 2 seconds to watch for player state changes
+            setInterval(fetchStateFromWorker, 2000);
         });
     </script>
 </body>
