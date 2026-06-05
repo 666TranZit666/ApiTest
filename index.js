@@ -1,65 +1,55 @@
+// Global memory store to preserve user input values without running external database steps
+const serverMemoryStore = {};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Handle CORS preflight requests so your website doesn't get blocked
+    // Dynamic Header Definitions resolving all browser cross-origin policy exceptions
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    // Intercept standard browser pre-flight checks instantly
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      });
+      return new Response(null, { headers: corsHeaders });
     }
 
-    // 1. DATA RECEIVER: Website sends the raw slider value here
+    // 1. DATA RECEIVER ROUTE: Receives numerical value directly from the webpage slider
     if (request.method === "POST" && url.pathname === "/api/update-config") {
       try {
-        const data = await request.json();
-        
-        if (!data.key) {
-          return new Response("Missing unique session key", { status: 400 });
-        }
+        const bodyData = await request.json();
+        const userKey = bodyData.key || "DEFAULT_KEY";
 
-        // Save the dynamic value inside Cloudflare KV storage
-        await env.LUMA_KV.put(`config:${data.key}`, JSON.stringify({ 
-          WalkSpeedValue: data.WalkSpeedValue 
-        }));
+        // Save exactly what the webpage passed inside runtime memory layout
+        serverMemoryStore[userKey] = bodyData.value;
 
         return new Response(JSON.stringify({ success: true }), {
-          headers: { 
-            "Content-Type": "application/json", 
-            "Access-Control-Allow-Origin": "*" 
-          }
+          headers: { "Content-Type": "application/json", ...corsHeaders }
         });
       } catch (err) {
-        return new Response("Invalid JSON payload", { status: 400 });
+        return new Response(JSON.stringify({ error: "Malformed payload body structure" }), { 
+          status: 400, 
+          headers: corsHeaders 
+        });
       }
     }
 
-    // 2. DATA TRANSMITTER: Roblox pulls the saved data here
+    // 2. DATA PROVIDER ROUTE: Gives the numerical value straight to your game executor loop
     if (request.method === "GET" && url.pathname === "/api/get-config") {
-      const key = url.searchParams.get("key");
-      if (!key) {
-        return new Response("Missing unique session key parameter", { status: 400 });
-      }
-
-      // Read the raw values straight from your KV storage namespace
-      const config = await env.LUMA_KV.get(`config:${key}`);
+      const userKey = url.searchParams.get("key") || "DEFAULT_KEY";
       
-      // Fallback default value (16) if no slider value has been saved yet
-      const responsePayload = config || JSON.stringify({ WalkSpeedValue: 16 });
+      // Pull value out of memory, falling back to 16 if empty
+      const activeValue = serverMemoryStore[userKey] !== undefined ? serverMemoryStore[userKey] : 16;
 
-      return new Response(responsePayload, {
-        headers: { 
-          "Content-Type": "application/json", 
-          "Access-Control-Allow-Origin": "*" 
-        }
+      return new Response(JSON.stringify({ WalkSpeedValue: activeValue }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
 
-    // Fallback error routing
-    return new Response("Endpoint Route Not Found", { status: 404 });
+    // Fallback catching general pattern variations
+    return new Response("Not Found", { status: 404, headers: corsHeaders });
   }
 };
