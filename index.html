@@ -557,4 +557,235 @@
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Rejoin Server</p></div>
                 <p class="card-desc">Rejoin the current server</p>
-                <button class="action-btn" onclick="executeButtonAction('RejoinServer')">Re
+                <button class="action-btn" onclick="executeButtonAction('RejoinServer')">Rejoin</button>
+            </div>
+
+            <div class="control-card">
+                <div class="card-header"><p class="card-title">Quit Game</p></div>
+                <p class="card-desc">leaves the game</p>
+                <button class="action-btn" onclick="executeButtonAction('QuitGame')">Shutdown Instance</button>
+            </div>
+        </div>
+
+        <div id="base-panel" class="tab-panel"><h1 class="panel-title">Base Settings</h1></div>
+        <div id="slot-panel" class="tab-panel"><h1 class="panel-title">Slot Settings</h1></div>
+        <div id="autobuild-panel" class="tab-panel"><h1 class="panel-title">Auto Build</h1></div>
+        <div id="dupe-panel" class="tab-panel"><h1 class="panel-title">Dupe Settings</h1></div>
+        <div id="shop-panel" class="tab-panel"><h1 class="panel-title">Shop Settings</h1></div>
+        <div id="tree-panel" class="tab-panel"><h1 class="panel-title">Tree Settings</h1></div>
+
+        <div id="settings-panel" class="tab-panel">
+            <h1 class="panel-title">Settings & Theme Management</h1>
+            <div class="panel-subtitle">Customize application visual profiles and saved styling layouts</div>
+
+            <div class="themes-grid">
+                <div class="theme-card" onclick="selectAndSaveTheme('Rise')">Rise</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Red')">Red</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Hawk')">Hawk</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Cyberpunk')">Cyberpunk</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('TokyoNight')">TokyoNight</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('OLED')">OLED</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('BloodRed')">BloodRed</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('White')">White</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Ubuntu')">Ubuntu</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Glacier')">Glacier</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Midnight')">Midnight</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Anime')">Anime</div>
+                <div class="theme-card" onclick="selectAndSaveTheme('Femboy')">Femboy</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
+        let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
+
+        // UPDATED MASTER CONFIGURATION SCHEMA MATRIX TRACKER
+        let activeConfigMatrix = {
+            WalkSpeed: 16,
+            JumpPower: 50,
+            HipHeight: 16,
+            FlySpeed: 50,
+            FlyKey: 'E',
+            Noclip: false,
+            Invis: false,
+            AntiAFK: false,
+            Flashlight: false,
+            InfZoom: false,
+            FOV: 70,
+            PlayerToView: '',
+            FastCheckout: false,
+            HardDragger: false,
+            AlwaysDay: false,
+            AlwaysNight: false,
+            NoFog: false,
+            SignDupeAmount: 1,
+            TeleportWithTree: true,
+            SelectedTreeTypeSize: 'Largest',
+            AutoSaveGUIConfiguration: true,
+            GlobalShadows: true,
+            UnboxItems: false,
+            FreeCamera: false,
+            DropAxeAfterDupe: false,
+            SellPlankAfterMilling: false,
+            UITheme: 'Rise'
+        };
+
+        function setCookie(name, value, days = 365) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = name + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString() + "; path=/; SameSite=Lax";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+            }
+            return null;
+        }
+
+        function switchTab(event, panelId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function generateAndSaveKey() {
+            const chars = '0123456789ABCDEF';
+            let generatedKey = 'LUMA-';
+            for (let i = 0; i < 24; i++) generatedKey += chars[Math.floor(Math.random() * 16)];
+            setCookie("luma_auth_key", generatedKey);
+            sessionKey = generatedKey;
+            document.getElementById("keyDisplay").innerText = generatedKey;
+            triggerNotification("success", "New configuration key generated successfully.");
+            syncGlobalConfigMatrix();
+        }
+
+        function selectAndSaveTheme(themeName) {
+            applyThemeColors(themeName);
+            setCookie("userAppTheme", themeName);
+            activeConfigMatrix.UITheme = themeName;
+            syncGlobalConfigMatrix();
+        }
+
+        // Custom Helper to adjust FOV Slider elements natively
+        function resetFOVElement() {
+            const slider = document.getElementById('fovSlider');
+            if (slider) {
+                slider.value = 70;
+                document.getElementById('fovValue').innerText = 70;
+                updateConfigParameter('FOV', 70);
+            }
+        }
+
+        // Trigger action dispatches for dynamic interface interactions
+        async function executeButtonAction(actionIdentifier) {
+            triggerNotification("warning", `Executing system pipeline command: ${actionIdentifier}...`);
+            try {
+                const response = await fetch(`${WORKER_URL}/trigger-action`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        key: sessionKey, 
+                        action: actionIdentifier 
+                    })
+                });
+                if (response.ok) {
+                    triggerNotification("success", `System command executed smoothly.`);
+                } else {
+                    triggerNotification("danger", "Pipeline action rejected by edge nodes.");
+                }
+            } catch (err) {
+                triggerNotification("danger", "Network Failure: System transaction timeline timed out.");
+            }
+        }
+
+        function updateConfigParameter(keyName, rawValue) {
+            if (typeof rawValue === 'boolean') {
+                activeConfigMatrix[keyName] = rawValue;
+            } else if (!isNaN(rawValue) && keyName !== 'FlyKey') {
+                activeConfigMatrix[keyName] = parseInt(rawValue);
+            } else {
+                activeConfigMatrix[keyName] = rawValue;
+            }
+            syncGlobalConfigMatrix();
+        }
+
+        async function syncGlobalConfigMatrix() {
+            triggerNotification("warning", "Synchronizing parameters matrix...");
+            try {
+                const response = await fetch(`${WORKER_URL}/send-config`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        key: sessionKey, 
+                        config: activeConfigMatrix 
+                    })
+                });
+                if (response.ok) {
+                    triggerNotification("success", "Success! Configurations synced smoothly.");
+                } else {
+                    triggerNotification("danger", "Server Rejected config payload initialization.");
+                }
+            } catch (err) {
+                triggerNotification("danger", "Network Failure: Unable to complete endpoint data transmission.");
+            }
+        }
+
+        function triggerNotification(type, message) {
+            const statusDiv = document.getElementById("statusMessage");
+            if (!statusDiv) return;
+            statusDiv.className = `alert alert-${type}`;
+            statusDiv.innerText = message;
+            statusDiv.classList.remove("d-none");
+        }
+
+        function applyThemeColors(themeName) {
+            const root = document.documentElement;
+            const configurations = {
+                "Rise": { main: "#121212", sidebar: "#242424", card: "#1f1f1f", text: "#ffffff", secondary: "#abaaaa", accent: "#ff0004", border: "#272727" },
+                "Hawk": { main: "#191919", sidebar: "#232323", card: "#232323", text: "#ffffff", secondary: "#abaaaa", accent: "#ff4242", border: "#2c2c2c" },
+                "Red": { main: "#140f0f", sidebar: "#231919", card: "#231919", text: "#fff0f0", secondary: "#c8b4b4", accent: "#ff3c50", border: "#ff3c50" },
+                "Cyberpunk": { main: "#0a0a14", sidebar: "#141428", card: "#141423", text: "#00ffff", secondary: "#c8c8ff", accent: "#ff00ff", border: "#00ffff" },
+                "TokyoNight": { main: "#1a1b26", sidebar: "#242532", card: "#2b2d3f", text: "#a9b1d6", secondary: "#c0caf5", accent: "#7aa2f7", border: "#565f89" },
+                "OLED": { main: "#000000", sidebar: "#0a0a0a", card: "#0c0c0c", text: "#ffffff", secondary: "#b4b4b4", accent: "#00ff00", border: "#505050" },
+                "BloodRed": { main: "#0f0808", sidebar: "#1e1212", card: "#190f0f", text: "#ff5050", secondary: "#dcb4b4", accent: "#dc143c", border: "#b40000" },
+                "White": { main: "#ffffff", sidebar: "#ebebf0", card: "#fafaff", text: "#32323c", secondary: "#64646e", accent: "#007aff", border: "#c8c8c8" },
+                "Ubuntu": { main: "#300a24", sidebar: "#401230", card: "#401230", text: "#ffffff", secondary: "#c8b4be", accent: "#e95420", border: "#ac2d82" },
+                "Glacier": { main: "#f0f8ff", sidebar: "#dcfff0", card: "#f5fcff", text: "#19374b", secondary: "#466e82", accent: "#00bfff", border: "#add8e6" },
+                "Midnight": { main: "#0a0a19", sidebar: "#14142d", card: "#141428", text: "#b4c8ff", secondary: "#9696c8", accent: "#4b0082", border: "#6432b4" },
+                "Anime": { main: "#fff0f5", sidebar: "#ffdc26", card: "#fff5fa", text: "#8b4565", secondary: "#b48296", accent: "#ff69b4", border: "#ff69b4" },
+                "Femboy": { main: "#fff5fa", sidebar: "#ffebd2", card: "#fffafc", text: "#db7093", secondary: "#b4788c", accent: "#ff69b4", border: "#ffb6c1" }
+            };
+
+            const selected = configurations[themeName] || configurations["Rise"];
+            root.style.setProperty('--bg-main', selected.main);
+            root.style.setProperty('--bg-sidebar', selected.sidebar);
+            root.style.setProperty('--bg-card', selected.card);
+            root.style.setProperty('--text-primary', selected.text);
+            root.style.setProperty('--text-secondary', selected.secondary);
+            root.style.setProperty('--accent-primary', selected.accent);
+            root.style.setProperty('--border-line', selected.border);
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedTheme = getCookie("userAppTheme") || "Rise";
+            applyThemeColors(savedTheme);
+            activeConfigMatrix.UITheme = savedTheme;
+
+            const savedKey = getCookie("luma_auth_key");
+            if (savedKey) {
+                sessionKey = savedKey;
+                const display = document.getElementById("keyDisplay");
+                if(display) display.innerText = savedKey;
+            }
+        });
+    </script>
+</body>
+</html>
