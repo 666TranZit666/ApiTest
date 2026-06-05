@@ -1,3 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luma Control Panel</title>
+    <style>
+        /* Base Application Layout CSS Variables mapped across themes */
+        :root {
+            --bg-main: #fff0f3;
+            --bg-sidebar: #ffeaef;
+            --bg-card: #ffffff;
+            --text-primary: #d63384;
+            --text-secondary: #c95276;
+            --accent-primary: #ff85a2;
+            --border-line: #ffe3e8;
+            --tab-hover: #ffd1dc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-secondary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* Sidebar Architecture */
+        .sidebar {
+            width: 240px;
+            background-color: var(--bg-sidebar);
+            border-right: 2px solid var(--border-line);
+            display: flex;
+            flex-direction: column;
+            padding: 25px 15px;
+            gap: 10px;
+            box-sizing: border-box;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .sidebar-brand {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+
+        /* Tab Item Navigation Buttons */
+        .tab-button {
+            background-color: var(--bg-card);
+            border: none;
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .tab-button:hover {
+            background-color: var(--tab-hover);
+            transform: translateX(2px);
+        }
+
+        .tab-button.active {
+            background-color: var(--tab-hover);
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        .tab-button.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 25%;
+            height: 50%;
+            width: 5px;
+            background-color: var(--accent-primary);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Main Workspace Routing Framework */
+        .main-window {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .panel-title {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .panel-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        /* Settings Interactive Customization Elements */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .theme-card {
+            background-color: var(--bg-card);
+            border: 2px solid var(--border-line);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-primary);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-brand">Luma</div>
+        <button class="tab-button active" onclick="switchTab(event, 'player-panel')">Player</button>
+        <button class="tab-button" onclick="switchTab(event, 'base-panel')">Base</button>
+        <button class="tab-button" onclick="switchTab(event, 'slot-panel')">Slot</button>
+        <button class="tab-button" onclick="switchTab(event, 'autobuild-panel')">Auto Build</button>
+        <button class="tab-button" onclick="switchTab(event, 'dupe-panel')">Dupe</button>
+        <button class="tab-button" onclick="switchTab(event, 'shop-panel')">Shop</button>
+        <button class="tab-button" onclick="switchTab(event, 'tree-panel')">Tree</button>
+        <button class="tab-button" onclick="switchTab(event, 'settings-panel')">Settings</button>
+    </div>
+
+    <div class="main-window">
+        <div id="player-panel" class="tab-panel active">
+            <h1 class="panel-title">Player Settings</h1>
+            <div class="panel-subtitle">Configure application runtime attributes</div>
+        </div>
+
+        <div id="base-panel" class="tab-panel">
+            <h1 class="panel-title">Base Options</h1>
+            <div class="panel-subtitle">Manage structural layout choices</div>
+        </div>
+
+        <div id="slot-panel" class="tab-panel">
+            <h1 class="panel-title">Slot Config</h1>
+            <div class="panel-subtitle">Manage slot parameter configurations</div>
+        </div>
+
+        <div id="autobuild-panel" class="tab-panel">
+            <h1 class="panel-title">Auto Build</h1>
+            <div class="panel-subtitle">Configure blueprint parameters</div>
+        </div>
+
+        <div id="dupe-panel" class="tab-panel">
+            <h1 class="panel-title">Dupe Utilities</h1>
+            <div class="panel-subtitle">Manage processing pipelines</div>
+        </div>
+
+        <div id="shop-panel" class="tab-panel">
+            <h1 class="panel-title">Shop Options</h1>
+            <div class="panel-subtitle">Manage procurement interfaces</div>
+        </div>
+
+        <div id="tree-panel" class="tab-panel">
+            <h1 class="panel-title">Tree Layout</h1>
+            <div class="panel-subtitle">Environmental object layout configs</div>
+        </div>
+
 <!-- SETTINGS PANEL: HOUSES THE AUTOMATED THEME PERSISTENCE SWAPPER -->
 <div id="settings-panel" class="tab-panel">
     <h1 class="panel-title">System Settings</h1>
@@ -159,3 +354,5 @@
         }
     });
 </script>
+</body>
+</html>
