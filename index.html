@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luma Control Panel</title>
+    <title>Luma | Lumber Tycoon 2 Script</title>
     <style>
         :root {
             --bg-main: #121212;
@@ -176,6 +176,34 @@
             text-align: center;
         }
 
+        /* Console Buttons & Blocks */
+        .action-btn {
+            background-color: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .key-box {
+            font-family: monospace;
+            background-color: var(--bg-main);
+            padding: 14px;
+            border-radius: 6px;
+            border: 1px dashed var(--border-line);
+            color: var(--text-primary);
+            margin-top: 15px;
+            word-break: break-all;
+        }
+
         /* Status Alerts System */
         .alert {
             padding: 12px 16px;
@@ -222,7 +250,8 @@
 
     <div class="sidebar">
         <div class="sidebar-brand">Luma</div>
-        <button class="tab-button active" onclick="switchTab(event, 'player-panel')">Player</button>
+        <button class="tab-button active" onclick="switchTab(event, 'home-panel')">Home</button>
+        <button class="tab-button" onclick="switchTab(event, 'player-panel')">Player</button>
         <button class="tab-button" onclick="switchTab(event, 'base-panel')">Base</button>
         <button class="tab-button" onclick="switchTab(event, 'slot-panel')">Slot</button>
         <button class="tab-button" onclick="switchTab(event, 'autobuild-panel')">Auto Build</button>
@@ -237,7 +266,19 @@
         <div id="statusMessage" class="alert d-none"></div>
         <br>
 
-        <div id="player-panel" class="tab-panel active">
+        <div id="home-panel" class="tab-panel active">
+            <h1 class="panel-title">Welcome to Luma</h1>
+            <div class="panel-subtitle">Manage session infrastructure and client synchronization tokens</div>
+            
+            <div class="control-card">
+                <div class="card-header"><p class="card-title">Session Tracking Token</p></div>
+                <div style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Generate a personal key identifier to securely sync data parameters with your client.</div>
+                <button class="action-btn" onclick="generateAndSaveKey()">Generate Profile Key</button>
+                <div class="key-box" id="keyDisplay">No key active. Initialize token above.</div>
+            </div>
+        </div>
+
+        <div id="player-panel" class="tab-panel">
             <h1 class="panel-title">Player Settings</h1>
             <div class="panel-subtitle">Configure operational engine physics properties</div>
             
@@ -269,42 +310,36 @@
         <div id="base-panel" class="tab-panel">
             <h1 class="panel-title">Base Settings</h1>
             <div class="panel-subtitle">Placeholder container for layout design properties</div>
-            </div>
+        </div>
 
         <div id="slot-panel" class="tab-panel">
             <h1 class="panel-title">Slot Settings</h1>
             <div class="panel-subtitle">Placeholder container for layout design properties</div>
-            </div>
+        </div>
 
         <div id="autobuild-panel" class="tab-panel">
             <h1 class="panel-title">Auto Build</h1>
             <div class="panel-subtitle">Placeholder container for layout design properties</div>
-            </div>
+        </div>
 
         <div id="dupe-panel" class="tab-panel">
             <h1 class="panel-title">Dupe Settings</h1>
             <div class="panel-subtitle">Placeholder container for layout design properties</div>
-            </div>
+        </div>
 
         <div id="shop-panel" class="tab-panel">
             <h1 class="panel-title">Shop Settings</h1>
             <div class="panel-subtitle">Placeholder container for layout design properties</div>
-            </div>
+        </div>
 
         <div id="tree-panel" class="tab-panel">
             <h1 class="panel-title">Tree Settings</h1>
             <div class="panel-subtitle">Placeholder container for layout design properties</div>
-            </div>
+        </div>
 
         <div id="settings-panel" class="tab-panel">
             <h1 class="panel-title">Settings & Theme Management</h1>
-            <div class="panel-subtitle">Customize application visual profiles and session sync data</div>
-            
-            <div class="control-card">
-                <div class="card-header"><p class="card-title">Session Tracking Token</p></div>
-                <button class="action-btn" onclick="generateAndSaveKey()">Generate Profile Key</button>
-                <div class="key-box" id="keyDisplay">No key active. Initialize token above.</div>
-            </div>
+            <div class="panel-subtitle">Customize application visual profiles and saved styling layouts</div>
 
             <div class="themes-grid">
                 <div class="theme-card" onclick="selectAndSaveTheme('Rise')">Rise</div>
@@ -331,7 +366,7 @@
 
     <script>
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
-        let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; // Set to your explicit fallback structure value
+        let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
 
         function setCookie(name, value, days = 365) {
             const date = new Date();
@@ -373,7 +408,7 @@
             sendDirectMetric('UITheme', themeName);
         }
 
-        // DISPATCH SINGLE PROPERTY SHAPES DIRECTLY (No local tracking object variable maintenance needed)
+        // DISPATCH KEY-VALUE UPDATES TO THE EDGE WORKER
         async function sendDirectMetric(parameterKey, rawValue) {
             let processedValue = rawValue;
             if (rawValue === 'true') processedValue = true;
@@ -385,7 +420,7 @@
             const dataPackage = {};
             dataPackage[parameterKey] = processedValue;
 
-            triggerNotification("warning", `Synchronizing data parameter changes [${parameterKey}]...`);
+            triggerNotification("warning", `Synchronizing [${parameterKey}] value...`);
 
             try {
                 const response = await fetch(`${WORKER_URL}/send-config`, {
@@ -400,10 +435,10 @@
                 if (response.ok) {
                     triggerNotification("success", `Data synchronized successfully: [${parameterKey} = ${rawValue}]`);
                 } else {
-                    triggerNotification("danger", "Server rejected sync profile routing payload.");
+                    triggerNotification("danger", "Server rejected sync profile package.");
                 }
             } catch (err) {
-                triggerNotification("danger", "Network Error: Failed to reach destination edge gateway node.");
+                triggerNotification("danger", "Network Error: Failed to reach edge deployment gateway.");
             }
         }
 
