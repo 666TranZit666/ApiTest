@@ -211,6 +211,35 @@
             word-break: break-all;
         }
 
+        /* Status Alerts System */
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            max-width: 550px;
+            box-sizing: border-box;
+        }
+        .alert-warning {
+            background-color: #332a15;
+            color: #ffcc00;
+            border: 1px solid #554411;
+        }
+        .alert-success {
+            background-color: #142d17;
+            color: #00ff66;
+            border: 1px solid #1a5c25;
+        }
+        .alert-danger {
+            background-color: #2d1416;
+            color: #ff3344;
+            border: 1px solid #5c1a20;
+        }
+        .d-none {
+            display: none !important;
+        }
+
         /* Settings Interface Grid */
         .settings-grid {
             display: grid;
@@ -280,9 +309,11 @@
                 <div class="slider-wrapper">
                     <input type="range" min="16" max="150" value="16" class="custom-slider" id="walkspeedSlider" 
                            oninput="updateSliderVisual(this.value)" 
-                           onchange="postSliderText(this.value)">
+                           onchange="handleSliderChange(this.value)">
                 </div>
             </div>
+
+            <div id="statusMessage" class="alert d-none"></div>
         </div>
 
         <div id="base-panel" class="tab-panel">
@@ -338,7 +369,11 @@
     </div>
 
     <script>
-        // --- COOKIE CORE UTILITIES (Reads and writes document.cookie variables) ---
+        // --- GLOBAL VARIABLES ---
+        const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
+        let sessionKey = "DEFAULT_KEY";
+
+        // --- COOKIE CORE UTILITIES ---
         function setCookie(name, value, days = 365) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -369,7 +404,7 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Generates active key and pushes to cookie
+        // Generates active key and synchronizes memory + cookie
         function generateAndSaveKey() {
             const chars = '0123456789ABCDEF';
             let generatedKey = 'LUMA-';
@@ -377,30 +412,47 @@
                 generatedKey += chars[Math.floor(Math.random() * 16)];
             }
             setCookie("luma_auth_key", generatedKey);
+            sessionKey = generatedKey; // Update active global reference variable
             document.getElementById("keyDisplay").innerText = generatedKey;
         }
 
-        // Live text updating on UI drag
+        // Live visual numeric counter text updates
         function updateSliderVisual(val) {
             document.getElementById("walkspeedValue").innerText = val;
         }
 
-        // --- TRANSMISSION CORE PIPELINE ---
-        function postSliderText(val) {
-            const activeKey = getCookie("luma_auth_key") || "DEFAULT_KEY";
-            const rawTextString = "Config.Test = " + parseInt(val);
+        // Intermediate parser to format slider values into the proper payload structure
+        function handleSliderChange(val) {
+            const formattedPayload = "Config.Test = " + parseInt(val);
+            transmitPayload(formattedPayload);
+        }
 
-            // Targets your correct worker execution handling address
-            fetch('https://robloxapi.6dds26hhmm.workers.dev/get-code?key=' + encodeURIComponent(activeKey), {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    textData: rawTextString
-                })
-            })
-            .catch(err => console.error("Transmission Error:", err));
+        // --- YOUR INTEGRATED TRANSMISSION FUNCTION ---
+        async function transmitPayload(codePayload) {
+            const statusDiv = document.getElementById("statusMessage");
+            statusDiv.className = "alert alert-warning mt-3 py-2 text-center";
+            statusDiv.innerText = "Transmitting package to edge network...";
+            statusDiv.classList.remove("d-none");
+
+            try {
+                const response = await fetch(`${WORKER_URL}/send-code`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: sessionKey, code: codePayload })
+                });
+
+                if (response.ok) {
+                    statusDiv.className = "alert alert-success mt-3 py-2 text-center";
+                    statusDiv.innerText = "Success! Payload queued for client retrieval.";
+                } else {
+                    const errText = await response.text();
+                    statusDiv.className = "alert alert-danger mt-3 py-2 text-center";
+                    statusDiv.innerText = `Server Rejected: ${errText}`;
+                }
+            } catch (error) {
+                statusDiv.className = "alert alert-danger mt-3 py-2 text-center";
+                statusDiv.innerText = "Network Error: Unable to contact backend worker.";
+            }
         }
 
         // Theme visual selector
@@ -533,14 +585,14 @@
             setCookie("userAppTheme", themeName);
         }
 
-        // Dynamic execution on initialization window cycle
+        // Window setup initialization loop
         window.addEventListener("DOMContentLoaded", () => {
-            // Read saved configuration attributes directly out of browser cookies
             const savedTheme = getCookie("userAppTheme");
             applyThemeColors(savedTheme);
 
             const savedKey = getCookie("luma_auth_key");
             if (savedKey) {
+                sessionKey = savedKey; // Update functional global variable
                 document.getElementById("keyDisplay").innerText = savedKey;
             }
         });
