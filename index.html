@@ -176,7 +176,7 @@
             text-align: center;
         }
 
-        /* Console Action Items */
+        /* Action Controls */
         .action-btn {
             background-color: var(--accent-primary);
             color: white;
@@ -248,6 +248,7 @@
 </head>
 <body>
 
+    <!-- Sidebar Menu Triggers -->
     <div class="sidebar">
         <div class="sidebar-brand">Luma</div>
         <button class="tab-button active" onclick="switchTab(event, 'home-panel')">Home</button>
@@ -261,11 +262,14 @@
         <button class="tab-button" onclick="switchTab(event, 'settings-panel')">Settings</button>
     </div>
 
+    <!-- Main Content Presentation Layer -->
     <div class="main-window">
         
+        <!-- Global Pipeline Activity Banner -->
         <div id="statusMessage" class="alert d-none"></div>
         <br>
 
+        <!-- 1. HOME TAB PANEL -->
         <div id="home-panel" class="tab-panel active">
             <h1 class="panel-title">Welcome to Luma</h1>
             <div class="panel-subtitle">Manage session infrastructure and client synchronization tokens</div>
@@ -278,6 +282,7 @@
             </div>
         </div>
 
+        <!-- 2. PLAYER TAB PANEL -->
         <div id="player-panel" class="tab-panel">
             <h1 class="panel-title">Player Settings</h1>
             <div class="panel-subtitle">Configure operational engine physics properties</div>
@@ -307,36 +312,15 @@
             </div>
         </div>
 
-        <div id="base-panel" class="tab-panel">
-            <h1 class="panel-title">Base Settings</h1>
-            <div class="panel-subtitle">Placeholder container for layout design properties</div>
-        </div>
+        <!-- Placeholder layout panels remain intact -->
+        <div id="base-panel" class="tab-panel"><h1 class="panel-title">Base Settings</h1></div>
+        <div id="slot-panel" class="tab-panel"><h1 class="panel-title">Slot Settings</h1></div>
+        <div id="autobuild-panel" class="tab-panel"><h1 class="panel-title">Auto Build</h1></div>
+        <div id="dupe-panel" class="tab-panel"><h1 class="panel-title">Dupe Settings</h1></div>
+        <div id="shop-panel" class="tab-panel"><h1 class="panel-title">Shop Settings</h1></div>
+        <div id="tree-panel" class="tab-panel"><h1 class="panel-title">Tree Settings</h1></div>
 
-        <div id="slot-panel" class="tab-panel">
-            <h1 class="panel-title">Slot Settings</h1>
-            <div class="panel-subtitle">Placeholder container for layout design properties</div>
-        </div>
-
-        <div id="autobuild-panel" class="tab-panel">
-            <h1 class="panel-title">Auto Build</h1>
-            <div class="panel-subtitle">Placeholder container for layout design properties</div>
-        </div>
-
-        <div id="dupe-panel" class="tab-panel">
-            <h1 class="panel-title">Dupe Settings</h1>
-            <div class="panel-subtitle">Placeholder container for layout design properties</div>
-        </div>
-
-        <div id="shop-panel" class="tab-panel">
-            <h1 class="panel-title">Shop Settings</h1>
-            <div class="panel-subtitle">Placeholder container for layout design properties</div>
-        </div>
-
-        <div id="tree-panel" class="tab-panel">
-            <h1 class="panel-title">Tree Settings</h1>
-            <div class="panel-subtitle">Placeholder container for layout design properties</div>
-        </div>
-
+        <!-- 9. SETTINGS TAB PANEL -->
         <div id="settings-panel" class="tab-panel">
             <h1 class="panel-title">Settings & Theme Management</h1>
             <div class="panel-subtitle">Customize application visual profiles and saved styling layouts</div>
@@ -355,20 +339,16 @@
                 <div class="theme-card" onclick="selectAndSaveTheme('Midnight')">Midnight</div>
                 <div class="theme-card" onclick="selectAndSaveTheme('Anime')">Anime</div>
                 <div class="theme-card" onclick="selectAndSaveTheme('Femboy')">Femboy</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Hanki')">Hanki</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Sunset')">Sunset</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Ocean')">Ocean</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Forest')">Forest</div>
             </div>
         </div>
 
     </div>
 
+    <!-- Processing Pipeline Infrastructure Scripts -->
     <script>
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
         let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
 
-        // RESTORED MASTER CONFIGURATION SCHEMA MATRIX VARIABLE
         let activeConfigMatrix = {
             WalkSpeed: 16,
             JumpPower: 50,
@@ -391,7 +371,7 @@
             FreeCamera: false,
             DropAxeAfterDupe: false,
             SellPlankAfterMilling: false,
-            UITheme: 'Ubuntu'
+            UITheme: 'Rise'
         };
 
         function setCookie(name, value, days = 365) {
@@ -436,16 +416,13 @@
             syncGlobalConfigMatrix();
         }
 
-        // Updates data safely within our matrix tracker before execution delivery
         function updateConfigParameter(keyName, rawValue) {
             activeConfigMatrix[keyName] = parseInt(rawValue);
             syncGlobalConfigMatrix();
         }
 
-        // FULL MATRIX SYNCHRONIZER DISPATCHER
         async function syncGlobalConfigMatrix() {
-            triggerNotification("warning", "Synchronizing complete layout parameters matrix configuration with worker edge nodes...");
-
+            triggerNotification("warning", "Synchronizing parameters matrix...");
             try {
                 const response = await fetch(`${WORKER_URL}/send-config`, {
                     method: "POST",
@@ -455,14 +432,13 @@
                         config: activeConfigMatrix 
                     })
                 });
-
                 if (response.ok) {
-                    triggerNotification("success", "Success! Full matrix configurations synced smoothly.");
+                    triggerNotification("success", "Success! Configurations synced smoothly.");
                 } else {
                     triggerNotification("danger", "Server Rejected config payload initialization.");
                 }
             } catch (err) {
-                triggerNotification("danger", "Network Failure: Unable to complete endpoint data pipeline transmission.");
+                triggerNotification("danger", "Network Failure: Unable to complete endpoint data transmission.");
             }
         }
 
@@ -474,31 +450,33 @@
             statusDiv.classList.remove("d-none");
         }
 
+        // FULL ENGINE THEME TRANSLATOR (Converting RGB from your Lua configurations)
         function applyThemeColors(themeName) {
             const root = document.documentElement;
             const configurations = {
-                "Rise": { main: "#121212", accent: "#ff0004" },
-                "Red": { main: "#140505", accent: "#d91e1e" },
-                "Hawk": { main: "#191919", accent: "#ff4242" },
-                "Cyberpunk": { main: "#0a0a14", accent: "#ff00ff" },
-                "TokyoNight": { main: "#1a1b26", accent: "#7aa2f7" },
-                "OLED": { main: "#000000", accent: "#ffffff" },
-                "BloodRed": { main: "#1a0002", accent: "#990011" },
-                "White": { main: "#f5f5f7", accent: "#000000" },
-                "Ubuntu": { main: "#300a24", accent: "#e95420" },
-                "Glacier": { main: "#0f171e", accent: "#5bc0be" },
-                "Midnight": { main: "#0b0c10", accent: "#1f2833" },
-                "Anime": { main: "#1f1a24", accent: "#bb86fc" },
-                "Femboy": { main: "#2a2024", accent: "#ffb7c5" },
-                "Hanki": { main: "#1c1e21", accent: "#4f5d75" },
-                "Sunset": { main: "#1a0f1a", accent: "#ff5e62" },
-                "Ocean": { main: "#0d1b2a", accent: "#415a77" },
-                "Forest": { main: "#1b2416", accent: "#588157" }
+                "Rise": { main: "#121212", sidebar: "#242424", card: "#1f1f1f", text: "#ffffff", secondary: "#abaaaa", accent: "#ff0004", border: "#272727" },
+                "Hawk": { main: "#191919", sidebar: "#232323", card: "#232323", text: "#ffffff", secondary: "#abaaaa", accent: "#ff4242", border: "#2c2c2c" },
+                "Red": { main: "#140f0f", sidebar: "#231919", card: "#231919", text: "#fff0f0", secondary: "#c8b4b4", accent: "#ff3c50", border: "#ff3c50" },
+                "Cyberpunk": { main: "#0a0a14", sidebar: "#141428", card: "#141423", text: "#00ffff", secondary: "#c8c8ff", accent: "#ff00ff", border: "#00ffff" },
+                "TokyoNight": { main: "#1a1b26", sidebar: "#242532", card: "#2b2d3f", text: "#a9b1d6", secondary: "#c0caf5", accent: "#7aa2f7", border: "#565f89" },
+                "OLED": { main: "#000000", sidebar: "#0a0a0a", card: "#0c0c0c", text: "#ffffff", secondary: "#b4b4b4", accent: "#00ff00", border: "#505050" },
+                "BloodRed": { main: "#0f0808", sidebar: "#1e1212", card: "#190f0f", text: "#ff5050", secondary: "#dcb4b4", accent: "#dc143c", border: "#b40000" },
+                "White": { main: "#ffffff", sidebar: "#ebebf0", card: "#fafaff", text: "#32323c", secondary: "#64646e", accent: "#007aff", border: "#c8c8c8" },
+                "Ubuntu": { main: "#300a24", sidebar: "#401230", card: "#401230", text: "#ffffff", secondary: "#c8b4be", accent: "#e95420", border: "#ac2d82" },
+                "Glacier": { main: "#f0f8ff", sidebar: "#dcfff0", card: "#f5fcff", text: "#19374b", secondary: "#466e82", accent: "#00bfff", border: "#add8e6" },
+                "Midnight": { main: "#0a0a19", sidebar: "#14142d", card: "#141428", text: "#b4c8ff", secondary: "#9696c8", accent: "#4b0082", border: "#6432b4" },
+                "Anime": { main: "#fff0f5", sidebar: "#ffdc26", card: "#fff5fa", text: "#8b4565", secondary: "#b48296", accent: "#ff69b4", border: "#ff69b4" },
+                "Femboy": { main: "#fff5fa", sidebar: "#ffebd2", card: "#fffafc", text: "#db7093", secondary: "#b4788c", accent: "#ff69b4", border: "#ffb6c1" }
             };
 
             const selected = configurations[themeName] || configurations["Rise"];
             root.style.setProperty('--bg-main', selected.main);
+            root.style.setProperty('--bg-sidebar', selected.sidebar);
+            root.style.setProperty('--bg-card', selected.card);
+            root.style.setProperty('--text-primary', selected.text);
+            root.style.setProperty('--text-secondary', selected.secondary);
             root.style.setProperty('--accent-primary', selected.accent);
+            root.style.setProperty('--border-line', selected.border);
         }
 
         window.addEventListener("DOMContentLoaded", () => {
