@@ -780,7 +780,7 @@ function generateSessionKey() {
     };
 
     try {
-        await fetch(`${WORKER_URL}/execute?key=${sessionKey}`, {
+        await fetch(`${WORKER_URL}/send-code?key=${sessionKey}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
