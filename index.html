@@ -24,7 +24,6 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
-            transition: background-color 0.2s, color 0.2s;
         }
 
         /* Sidebar Navigation Layout */
@@ -272,10 +271,6 @@
             box-sizing: border-box;
         }
 
-        .custom-input:focus {
-            border-color: var(--accent-primary);
-        }
-
         /* Action Buttons */
         .action-btn {
             background-color: var(--accent-primary);
@@ -304,21 +299,6 @@
             word-break: break-all;
         }
 
-        /* Status Alerts System */
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            margin-top: 15px;
-            max-width: 600px;
-            box-sizing: border-box;
-        }
-        .alert-warning { background-color: #332a15; color: #ffcc00; border: 1px solid #554411; }
-        .alert-success { background-color: #142d17; color: #00ff66; border: 1px solid #1a5c25; }
-        .alert-danger { background-color: #2d1416; color: #ff3344; border: 1px solid #5c1a20; }
-        .d-none { display: none !important; }
-
         /* Configuration Themes Grid */
         .themes-grid {
             display: grid;
@@ -337,12 +317,6 @@
             font-weight: 600;
             color: var(--text-primary);
             font-size: 0.9rem;
-            transition: transform 0.15s, border-color 0.15s;
-        }
-
-        .theme-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-primary);
         }
 
         /* Profile Banner Tags */
@@ -375,9 +349,6 @@
     </div>
 
     <div class="main-window">
-        
-        <div id="statusMessage" class="alert d-none"></div>
-        <br>
 
         <div id="home-panel" class="tab-panel active">
             <h1 class="panel-title">Welcome to Luma</h1>
@@ -387,15 +358,15 @@
                 <div class="card-header"><p class="card-title">Active Environment Connection</p></div>
                 <p class="card-desc">Displays the verification status of your local Lua pipeline instance.</p>
                 <div id="playerConnectionStatus">
-                    <span class="profile-tag" style="border-color: var(--border-line); opacity: 0.6;">Waiting for Link...</span>
+                    <span class="profile-tag">Linked Player: None</span>
                 </div>
             </div>
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Session Tracking Token</p></div>
                 <div style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Generate a personal key identifier to securely sync data parameters with your client.</div>
-                <button class="action-btn" onclick="generateAndSaveKey()">Generate Profile Key</button>
-                <div class="key-box" id="keyDisplay">No key active. Initialize token above.</div>
+                <button class="action-btn">Generate Profile Key</button>
+                <div class="key-box">LUMA-3B318FED251169E1A2DEA27E</div>
             </div>
         </div>
 
@@ -434,34 +405,29 @@
             <div class="control-card">
                 <div class="card-header">
                     <p class="card-title">Hip Height</p>
-                    <span class="slider-badge" id="hipheightValue">16</span>
+                    <span class="slider-badge">16</span>
                 </div>
                 <p class="card-desc">Adjust player HipHeight (16 - 100)</p>
                 <div class="slider-wrapper">
-                    <input type="range" min="16" max="100" value="16" class="custom-slider" id="hipheightSlider"
-                           oninput="document.getElementById('hipheightValue').innerText = this.value" 
-                           onchange="updateConfigParameter('HipHeight', this.value)">
+                    <input type="range" min="16" max="100" value="16" class="custom-slider">
                 </div>
             </div>
 
             <div class="control-card">
                 <div class="card-header">
                     <p class="card-title">Fly Speed</p>
-                    <span class="slider-badge" id="flyspeedValue">50</span>
+                    <span class="slider-badge">50</span>
                 </div>
                 <p class="card-desc">Adjust player Fly Speed (50 - 800)</p>
                 <div class="slider-wrapper">
-                    <input type="range" min="50" max="800" value="50" class="custom-slider" id="flyspeedSlider"
-                           oninput="document.getElementById('flyspeedValue').innerText = this.value" 
-                           onchange="updateConfigParameter('FlySpeed', this.value)">
+                    <input type="range" min="50" max="800" value="50" class="custom-slider">
                 </div>
             </div>
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Fly KeyBind</p></div>
                 <p class="card-desc">Toggle Flight on/off</p>
-                <input type="text" class="custom-input" id="flykeyInput" value="E" maxlength="1" style="width: 80px; text-align: center;"
-                       onchange="updateConfigParameter('FlyKey', this.value.toUpperCase())">
+                <input type="text" class="custom-input" value="E" maxlength="1" style="width: 80px; text-align: center;">
             </div>
 
             <div class="control-card">
@@ -471,7 +437,7 @@
                         <p class="card-desc" style="margin-bottom:0;">Pass through any wall</p>
                     </div>
                     <label class="switch">
-                        <input type="checkbox" id="noclipToggle" onchange="updateConfigParameter('Noclip', this.checked)">
+                        <input type="checkbox">
                         <span class="slider-switch"></span>
                     </label>
                 </div>
@@ -484,7 +450,7 @@
                         <p class="card-desc" style="margin-bottom:0;">hide your self Server-Side</p>
                     </div>
                     <label class="switch">
-                        <input type="checkbox" id="invisToggle" onchange="updateConfigParameter('Invis', this.checked)">
+                        <input type="checkbox">
                         <span class="slider-switch"></span>
                     </label>
                 </div>
@@ -493,7 +459,7 @@
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Anti-AFK</p></div>
                 <p class="card-desc">Stops the game from kicking the localplayer</p>
-                <button class="action-btn" onclick="executeButtonAction('AntiAFK')">Activate Anti-AFK</button>
+                <button class="action-btn">Activate Anti-AFK</button>
             </div>
 
             <div class="control-card">
@@ -503,7 +469,7 @@
                         <p class="card-desc" style="margin-bottom:0;">A light to see in the dark</p>
                     </div>
                     <label class="switch">
-                        <input type="checkbox" id="flashlightToggle" onchange="updateConfigParameter('Flashlight', this.checked)">
+                        <input type="checkbox">
                         <span class="slider-switch"></span>
                     </label>
                 </div>
@@ -519,7 +485,7 @@
                         <p class="card-desc" style="margin-bottom:0;">Change the camera zoom</p>
                     </div>
                     <label class="switch">
-                        <input type="checkbox" id="infzoomToggle" onchange="updateConfigParameter('InfZoom', this.checked)">
+                        <input type="checkbox">
                         <span class="slider-switch"></span>
                     </label>
                 </div>
@@ -528,20 +494,18 @@
             <div class="control-card">
                 <div class="card-header">
                     <p class="card-title">Field-Of-View</p>
-                    <span class="slider-badge" id="fovValue">70</span>
+                    <span class="slider-badge">70</span>
                 </div>
                 <p class="card-desc">Change Your Camera FOV (20 - 120)</p>
                 <div class="slider-wrapper">
-                    <input type="range" min="20" max="120" value="70" class="custom-slider" id="fovSlider"
-                           oninput="document.getElementById('fovValue').innerText = this.value" 
-                           onchange="updateConfigParameter('FOV', this.value)">
+                    <input type="range" min="20" max="120" value="70" class="custom-slider">
                 </div>
             </div>
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Field-Of-View Reset</p></div>
                 <p class="card-desc">reset the FOV</p>
-                <button class="action-btn" onclick="resetFOVElement()">Reset FOV</button>
+                <button class="action-btn">Reset FOV</button>
             </div>
 
             <div class="control-card">
@@ -554,14 +518,14 @@
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Start Spectating Player</p></div>
-                <p class="card-desc">reset the FOV</p>
-                <button class="action-btn" onclick="executeButtonAction('StartSpectating')">Start Spectating</button>
+                <p class="card-desc">Begin viewing targeted viewport selection</p>
+                <button class="action-btn">Start Spectating</button>
             </div>
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Stop Spectating Player</p></div>
-                <p class="card-desc">reset the FOV</p>
-                <button class="action-btn" onclick="executeButtonAction('StopSpectating')">Stop Spectating</button>
+                <p class="card-desc">Return camera control back to normal character</p>
+                <button class="action-btn">Stop Spectating</button>
             </div>
 
             <hr class="ui-line">
@@ -570,46 +534,114 @@
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Safe Death</p></div>
                 <p class="card-desc">Respawn without loosing your axes</p>
-                <button class="action-btn" onclick="executeButtonAction('SafeDeath')">Execute Safe Death</button>
+                <button class="action-btn">Execute Safe Death</button>
             </div>
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Rejoin Server</p></div>
                 <p class="card-desc">Rejoin the current server</p>
-                <button class="action-btn" onclick="executeButtonAction('RejoinServer')">Rejoin</button>
+                <button class="action-btn">Rejoin</button>
             </div>
 
             <div class="control-card">
                 <div class="card-header"><p class="card-title">Quit Game</p></div>
                 <p class="card-desc">leaves the game</p>
-                <button class="action-btn" onclick="executeButtonAction('QuitGame')">Shutdown Instance</button>
+                <button class="action-btn">Shutdown Instance</button>
             </div>
         </div>
 
-        <div id="base-panel" class="tab-panel"><h1 class="panel-title">Base Settings</h1></div>
-        <div id="slot-panel" class="tab-panel"><h1 class="panel-title">Slot Settings</h1></div>
-        <div id="autobuild-panel" class="tab-panel"><h1 class="panel-title">Auto Build</h1></div>
-        <div id="dupe-panel" class="tab-panel"><h1 class="panel-title">Dupe Settings</h1></div>
-        <div id="shop-panel" class="tab-panel"><h1 class="panel-title">Shop Settings</h1></div>
-        <div id="tree-panel" class="tab-panel"><h1 class="panel-title">Tree Settings</h1></div>
+        <div id="base-panel" class="tab-panel">
+            <h1 class="panel-title">Base Settings</h1>
+            <div class="panel-subtitle">Configure plot modifications and structure placements</div>
+            <div class="control-card">
+                <div class="toggle-wrapper">
+                    <div>
+                        <p class="card-title">Hard Dragger</p>
+                        <p class="card-desc" style="margin-bottom:0;">Move items with maximum physical velocity forces</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="slot-panel" class="tab-panel">
+            <h1 class="panel-title">Slot Settings</h1>
+            <div class="panel-subtitle">Manage dynamic profile saving and safe-slots load processes</div>
+        </div>
+
+        <div id="autobuild-panel" class="tab-panel">
+            <h1 class="panel-title">Auto Build</h1>
+            <div class="panel-subtitle">Construct blueprint designs instantly using inventory components</div>
+        </div>
+
+        <div id="dupe-panel" class="tab-panel">
+            <h1 class="panel-title">Dupe Settings</h1>
+            <div class="panel-subtitle">Configure duplication counts for axis, slots, or signs</div>
+            <div class="control-card">
+                <div class="card-header">
+                    <p class="card-title">Sign Dupe Amount</p>
+                    <span class="slider-badge">1</span>
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" min="1" max="100" value="1" class="custom-slider">
+                </div>
+            </div>
+        </div>
+
+        <div id="shop-panel" class="tab-panel">
+            <h1 class="panel-title">Shop Settings</h1>
+            <div class="panel-subtitle">Automate cash registers and store terminal inventory purchases</div>
+            <div class="control-card">
+                <div class="toggle-wrapper">
+                    <div>
+                        <p class="card-title">Fast Checkout</p>
+                        <p class="card-desc" style="margin-bottom:0;">Bypass delay check timers instantly at wood store terminals</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="tree-panel" class="tab-panel">
+            <h1 class="panel-title">Tree Settings</h1>
+            <div class="panel-subtitle">Configure map-wide wood tracking filters and automation dimensions</div>
+            <div class="control-card">
+                <div class="toggle-wrapper">
+                    <div>
+                        <p class="card-title">Teleport with Tree</p>
+                        <p class="card-desc" style="margin-bottom:0;">Keeps character anchored to log components during fast moves</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
 
         <div id="settings-panel" class="tab-panel">
             <h1 class="panel-title">Settings & Theme Management</h1>
             <div class="panel-subtitle">Customize application visual profiles and saved styling layouts</div>
 
             <div class="themes-grid">
-                <div class="theme-card" onclick="selectAndSaveTheme('Rise')">Rise</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Red')">Red</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Hawk')">Hawk</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Cyberpunk')">Cyberpunk</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('TokyoNight')">TokyoNight</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('OLED')">OLED</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('BloodRed')">BloodRed</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('White')">White</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Ubuntu')">Ubuntu</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Glacier')">Glacier</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Midnight')">Midnight</div>
-                <div class="theme-card" onclick="selectAndSaveTheme('Anime')">Anime</div>
+                <div class="theme-card">Rise</div>
+                <div class="theme-card">Red</div>
+                <div class="theme-card">Hawk</div>
+                <div class="theme-card">Cyberpunk</div>
+                <div class="theme-card">TokyoNight</div>
+                <div class="theme-card">OLED</div>
+                <div class="theme-card">BloodRed</div>
+                <div class="theme-card">White</div>
+                <div class="theme-card">Ubuntu</div>
+                <div class="theme-card">Glacier</div>
+                <div class="theme-card">Midnight</div>
+                <div class="theme-card">Anime</div>
             </div>
         </div>
 
@@ -617,9 +649,8 @@
 
     <script>
         const WORKER_URL = "https://robloxapi.6dds26hhmm.workers.dev";
-        let sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
+        const sessionKey = "LUMA-3B318FED251169E1A2DEA27E"; 
 
-        // Dynamic State Stream Management Object
         let linkedSessionState = {
             localPlayerName: "",
             connectedClientsList: [] 
@@ -628,50 +659,10 @@
         let activeConfigMatrix = {
             WalkSpeed: 16,
             JumpPower: 50,
-            HipHeight: 16,
-            FlySpeed: 50,
-            FlyKey: 'E',
-            Noclip: false,
-            Invis: false,
-            AntiAFK: false,
-            Flashlight: false,
-            InfZoom: false,
-            FOV: 70,
-            PlayerToView: '',
-            FastCheckout: false,
-            HardDragger: false,
-            AlwaysDay: false,
-            AlwaysNight: false,
-            NoFog: false,
-            SignDupeAmount: 1,
-            TeleportWithTree: true,
-            SelectedTreeTypeSize: 'Largest',
-            AutoSaveGUIConfiguration: true,
-            GlobalShadows: true,
-            UnboxItems: false,
-            FreeCamera: false,
-            DropAxeAfterDupe: false,
-            SellPlankAfterMilling: false,
-            UITheme: 'Rise'
+            PlayerToView: ''
         };
 
-        function setCookie(name, value, days = 365) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            document.cookie = name + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString() + "; path=/; SameSite=Lax";
-        }
-
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-            }
-            return null;
-        }
-
+        // Static Tab Switcher logic remains to navigate panel layers visually
         function switchTab(event, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -679,68 +670,19 @@
             event.currentTarget.classList.add('active');
         }
 
-        function generateAndSaveKey() {
-            const chars = '0123456789ABCDEF';
-            let generatedKey = 'LUMA-';
-            for (let i = 0; i < 24; i++) generatedKey += chars[Math.floor(Math.random() * 16)];
-            setCookie("luma_auth_key", generatedKey);
-            sessionKey = generatedKey;
-            document.getElementById("keyDisplay").innerText = generatedKey;
-            triggerNotification("success", "New configuration key generated successfully.");
-            syncGlobalConfigMatrix();
-        }
-
-        function selectAndSaveTheme(themeName) {
-            applyThemeColors(themeName);
-            setCookie("userAppTheme", themeName);
-            activeConfigMatrix.UITheme = themeName;
-            syncGlobalConfigMatrix();
-        }
-
-        function resetFOVElement() {
-            const slider = document.getElementById('fovSlider');
-            if (slider) {
-                slider.value = 70;
-                document.getElementById('fovValue').innerText = 70;
-                updateConfigParameter('FOV', 70);
-            }
-        }
-
-        async function executeButtonAction(actionIdentifier) {
-            triggerNotification("warning", `Executing system pipeline command: ${actionIdentifier}...`);
-            try {
-                const response = await fetch(`${WORKER_URL}/trigger-action`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        key: sessionKey, 
-                        action: actionIdentifier 
-                    })
-                });
-                if (response.ok) {
-                    triggerNotification("success", `System command executed smoothly.`);
-                } else {
-                    triggerNotification("danger", "Pipeline action rejected by edge nodes.");
-                }
-            } catch (err) {
-                triggerNotification("danger", "Network Failure: System transaction timeline timed out.");
-            }
-        }
-
+        // Operational adjustments for WalkSpeed, JumpPower, and Player Selection dropdown
         function updateConfigParameter(keyName, rawValue) {
-            if (typeof rawValue === 'boolean') {
+            if (keyName === 'PlayerToView') {
                 activeConfigMatrix[keyName] = rawValue;
-            } else if (!isNaN(rawValue) && keyName !== 'FlyKey') {
-                activeConfigMatrix[keyName] = parseInt(rawValue);
             } else {
-                activeConfigMatrix[keyName] = rawValue;
+                activeConfigMatrix[keyName] = parseInt(rawValue);
             }
             syncGlobalConfigMatrix();
         }
 
         async function syncGlobalConfigMatrix() {
             try {
-                const response = await fetch(`${WORKER_URL}/send-config`, {
+                await fetch(`${WORKER_URL}/send-config`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
@@ -749,24 +691,15 @@
                     })
                 });
             } catch (err) {
-                console.error("Failed configuration sync:", err);
+                console.error("Configuration sync failed:", err);
             }
         }
 
-        function triggerNotification(type, message) {
-            const statusDiv = document.getElementById("statusMessage");
-            if (!statusDiv) return;
-            statusDiv.className = `alert alert-${type}`;
-            statusDiv.innerText = message;
-            statusDiv.classList.remove("d-none");
-        }
-
-        // Real-Time Polling Engine: Pulls data matching your Roblox script updates
+        // Operational Dropdown Polling Loop (Fetches and handles active usernames)
         async function fetchStateFromWorker() {
-            if (!sessionKey) return;
             try {
                 const response = await fetch(`${WORKER_URL}/get-state?key=${sessionKey}`);
-                if (response.ok && response.status !== 204) {
+                if (response.ok) {
                     const data = await response.json();
                     if (data) {
                         processIncomingServerStateUpdate(data);
@@ -777,14 +710,9 @@
             }
         }
 
-        // Processing Pipeline Engine: Handles local identity and drops other entries into dropdown
         function processIncomingServerStateUpdate(incomingPayload) {
             if (incomingPayload.localPlayerName) {
-                if (linkedSessionState.localPlayerName !== incomingPayload.localPlayerName) {
-                    triggerNotification("success", `Connected! Verified Session Profile: ${incomingPayload.localPlayerName}`);
-                }
                 linkedSessionState.localPlayerName = incomingPayload.localPlayerName;
-                
                 const statusContainer = document.getElementById("playerConnectionStatus");
                 if (statusContainer) {
                     statusContainer.innerHTML = `<span class="profile-tag">Linked Player: ${linkedSessionState.localPlayerName}</span>`;
@@ -792,7 +720,6 @@
             }
 
             if (incomingPayload.connectedClientsList && Array.isArray(incomingPayload.connectedClientsList)) {
-                // Check if players list changed before rewriting components to protect rendering load
                 if (JSON.stringify(linkedSessionState.connectedClientsList) !== JSON.stringify(incomingPayload.connectedClientsList)) {
                     linkedSessionState.connectedClientsList = incomingPayload.connectedClientsList;
                     
@@ -800,16 +727,13 @@
                     if (dropdownElement) {
                         dropdownElement.innerHTML = "";
                         
-                        // Filters out your local identity dynamically
+                        // Filter out local player name dynamically
                         const filteredPlayers = linkedSessionState.connectedClientsList.filter(
                             player => player !== linkedSessionState.localPlayerName
                         );
 
                         if (filteredPlayers.length === 0) {
-                            const defaultOpt = document.createElement("option");
-                            defaultOpt.value = "";
-                            defaultOpt.innerText = "-- No Other Active Players Detected --";
-                            dropdownElement.appendChild(defaultOpt);
+                            dropdownElement.innerHTML = '<option value="">-- No Other Active Players Detected --</option>';
                         } else {
                             filteredPlayers.forEach(player => {
                                 const opt = document.createElement("option");
@@ -826,46 +750,8 @@
             }
         }
 
-        function applyThemeColors(themeName) {
-            const root = document.documentElement;
-            const configurations = {
-                "Rise": { main: "#121212", sidebar: "#242424", card: "#1f1f1f", text: "#ffffff", secondary: "#abaaaa", accent: "#ff0004", border: "#272727" },
-                "Hawk": { main: "#191919", sidebar: "#232323", card: "#232323", text: "#ffffff", secondary: "#abaaaa", accent: "#ff4242", border: "#2c2c2c" },
-                "Red": { main: "#140f0f", sidebar: "#231919", card: "#231919", text: "#fff0f0", secondary: "#c8b4b4", accent: "#ff3c50", border: "#ff3c50" },
-                "Cyberpunk": { main: "#0a0a14", sidebar: "#141428", card: "#141423", text: "#00ffff", secondary: "#c8c8ff", accent: "#ff00ff", border: "#00ffff" },
-                "TokyoNight": { main: "#1a1b26", sidebar: "#242532", card: "#2b2d3f", text: "#a9b1d6", secondary: "#c0caf5", accent: "#7aa2f7", border: "#565f89" },
-                "OLED": { main: "#000000", sidebar: "#0a0a0a", card: "#0c0c0c", text: "#ffffff", secondary: "#b4b4b4", accent: "#00ff00", border: "#505050" },
-                "BloodRed": { main: "#0f0808", sidebar: "#1e1212", card: "#190f0f", text: "#ff5050", secondary: "#dcb4b4", accent: "#dc143c", border: "#b40000" },
-                "White": { main: "#ffffff", sidebar: "#ebebf0", card: "#fafaff", text: "#32323c", secondary: "#64646e", accent: "#007aff", border: "#c8c8c8" },
-                "Ubuntu": { main: "#300a24", sidebar: "#401230", card: "#401230", text: "#ffffff", secondary: "#c8b4be", accent: "#e95420", border: "#ac2d82" },
-                "Glacier": { main: "#f0f8ff", sidebar: "#dcfff0", card: "#f5fcff", text: "#19374b", secondary: "#466e82", accent: "#00bfff", border: "#add8e6" },
-                "Midnight": { main: "#0a0a19", sidebar: "#14142d", card: "#141428", text: "#b4c8ff", secondary: "#9696c8", accent: "#4b0082", border: "#6432b4" },
-                "Anime": { main: "#fff0f5", sidebar: "#ffdcd2", card: "#fff5fa", text: "#8b4565", secondary: "#b48296", accent: "#ff69b4", border: "#ffb4c8" }
-            };
-
-            const selected = configurations[themeName] || configurations["Rise"];
-            root.style.setProperty('--bg-main', selected.main);
-            root.style.setProperty('--bg-sidebar', selected.sidebar);
-            root.style.setProperty('--bg-card', selected.card);
-            root.style.setProperty('--text-primary', selected.text);
-            root.style.setProperty('--text-secondary', selected.secondary);
-            root.style.setProperty('--accent-primary', selected.accent);
-            root.style.setProperty('--border-line', selected.border);
-        }
-
         window.addEventListener("DOMContentLoaded", () => {
-            const savedTheme = getCookie("userAppTheme") || "Rise";
-            applyThemeColors(savedTheme);
-            activeConfigMatrix.UITheme = savedTheme;
-
-            const savedKey = getCookie("luma_auth_key");
-            if (savedKey) {
-                sessionKey = savedKey;
-                const display = document.getElementById("keyDisplay");
-                if(display) display.innerText = savedKey;
-            }
-
-            // Fire up active pooling loops every 2 seconds to watch for player state changes
+            // Continually poll worker node every 2 seconds for fresh game player maps
             setInterval(fetchStateFromWorker, 2000);
         });
     </script>
