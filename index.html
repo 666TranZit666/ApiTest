@@ -350,24 +350,40 @@
 
         // --- KEY SYSTEM STORAGE CONTROLLER ---
         function generateAndSaveKey() {
-            // Generate a random 24-character hexadecimal session string
             const chars = '0123456789ABCDEF';
             let generatedKey = 'LUMA-';
             for (let i = 0; i < 24; i++) {
                 generatedKey += chars[Math.floor(Math.random() * 16)];
             }
             
-            // Save string value to browser storage (persistent cookie alternative)
             localStorage.setItem("luma_auth_key", generatedKey);
-            
-            // Output value directly onto screen
             document.getElementById("keyDisplay").innerText = generatedKey;
         }
 
-        // --- WALKSPEED PANEL SLIDER ---
+        // --- WALKSPEED PANEL SLIDER WITH FULL STRUCT DATA ---
         function handleWalkspeedUpdate(val) {
             document.getElementById("walkspeedValue").innerText = val;
-            // Next up, we will configure the specific execution code to attach here!
+            
+            const slider = document.getElementById("walkspeedSlider");
+            const activeKey = localStorage.getItem("luma_auth_key") || "DEFAULT_KEY";
+
+            // Pipes current configuration along with Min and Max bounds directly to your backend
+            fetch('https://cazed.wtf/api/update-config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    key: activeKey,
+                    WalkSpeed: {
+                        Current: parseInt(val),
+                        Min: parseInt(slider.min),
+                        Max: parseInt(slider.max)
+                    }
+                })
+            })
+            .then(res => res.json())
+            .catch(err => console.error("Error updating walkspeed metrics pipeline:", err));
         }
 
         // --- THEME ENGINE SELECTION MAPPING ---
@@ -501,11 +517,9 @@
 
         // Environment initialization hook running instantly on load
         window.addEventListener("DOMContentLoaded", () => {
-            // 1. Initialize Visual Theme
             const savedTheme = localStorage.getItem("userAppTheme");
             applyThemeColors(savedTheme ? savedTheme : "Rise");
 
-            // 2. Load stored active key string if it exists
             const savedKey = localStorage.getItem("luma_auth_key");
             if (savedKey) {
                 document.getElementById("keyDisplay").innerText = savedKey;
